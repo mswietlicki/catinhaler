@@ -312,10 +312,12 @@ python scripts/render.py
 |---|---|
 | `stl` | both masks for every size in `stl/<size>/`, the chamber parts in `stl/common/` (binary STL) |
 | `png` | OpenSCAD renders of single parts in `docs/img/` |
-| `svg` | the paper template for every size, `stl/<size>/cat_face_rim_template_<size>.svg` |
-| `diagrams` | `print_layout.png`, `mask_sizes.png` and `system_assembled.png` composed from the exported STLs, and the labelled sections drawn with matplotlib |
+| `svg` | the paper template for every size, `stl/<size>/cat_face_rim_template_<size>.svg`, and a Polish copy for the website in `docs/img/pl/` (`template_lang = "pl"`) |
+| `diagrams` | `print_layout.png`, `mask_sizes.png` and `system_assembled.png` composed from the exported STLs, and the labelled sections drawn with matplotlib (Polish versions in `docs/img/pl/`) |
 
 Pass one or more targets to build only those, for example `python scripts/render.py stl`. The labelled diagrams need the packages in `scripts/requirements.txt` (`pip install -r scripts/requirements.txt`); without them that step is skipped with a warning. The exports run in parallel; the slowest is the round mask, up to a minute per size in OpenSCAD 2021 (CGAL). PNG export needs OpenGL, so on a headless Linux machine run the script under `xvfb-run`.
+
+An STL whose mesh has not changed is left as it is, even though CGAL writes the triangles in a different order on every run, so regenerating does not show up as a binary change in git.
 
 To export a single part by hand, pass the parameters with `-D`, for example the cap, or a cat face mask for a 4.5 kg cat:
 
@@ -325,6 +327,18 @@ openscad -o stl/common/holding_chamber_cap.stl --export-format binstl -D 'part="
 
 ```bash
 openscad -o cat_face_inhaler_mask_4.5kg.stl --export-format binstl -D cat_weight_kg=4.5 scad/cat_face_inhaler_mask.scad
+```
+
+### The Polish website
+
+`site/` holds a Polish website for cat owners who are not makers: what the kit is, choosing the size with printable templates, one ZIP per size with files named after their material (`TPU_...`, `PETG_...`), a message to send to a print service, assembly, getting the cat used to the mask, and an FAQ. `scripts/build_site.py` builds it into `_site/` from `site/`, `docs/img/` and `stl/` using only the Python standard library, and `.github/workflows/pages.yml` runs it and publishes the result on GitHub Pages on every push to `main` (one-time setting: *Settings > Pages > Source: GitHub Actions*). Run `render.py` first when the designs change; the build only packages what is in the repo. To preview locally:
+
+```bash
+python scripts/build_site.py
+```
+
+```bash
+python -m http.server 8765 --directory _site
 ```
 
 ---

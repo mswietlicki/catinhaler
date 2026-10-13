@@ -13,6 +13,8 @@ The masks come ready to print for cats of **3.3, 4, 5 and 6 kg**; the chamber is
 
 **[Read the full manual](MANUAL.md)**: measuring, sizing, detailed print settings, assembly, fitting the mask, cleaning and troubleshooting.
 
+**Po polsku:** strona dla opiekunów kotów, z paczkami ZIP do pobrania i szablonami do druku: [mswietlicki.github.io/catinhaler](https://mswietlicki.github.io/catinhaler/).
+
 ## Sizes
 
 ![Cat face (back) and round (front) masks for 3.3, 4, 5 and 6 kg cats](docs/img/mask_sizes.png)
@@ -81,8 +83,9 @@ Run `python scripts/render.py stl` to rebuild only the STLs. The exported cat we
 | `scad/` | OpenSCAD sources: `cat_face_inhaler_mask.scad`, `round_cushion_inhaler_mask.scad`, `holding_chamber.scad` |
 | `stl/<weight>kg/` | both masks and the rim paper template for one cat size |
 | `stl/common/` | holding chamber parts and the one-piece spacer, for every size |
-| `docs/img/` | images used by the README and the manual |
-| `scripts/` | `render.py` (regenerates `stl/` and `docs/`), `diagrams.py` (labelled drawings) |
+| `docs/img/` | images used by the README, the manual and the website (`docs/img/pl/`: Polish diagrams and templates) |
+| `site/` | the Polish website: hand-written pages, built into `_site/` and published on GitHub Pages |
+| `scripts/` | `render.py` (regenerates `stl/` and `docs/`), `diagrams.py` (labelled drawings), `build_site.py` (the website) |
 | `MANUAL.md` | printing and assembly manual |
 
 ## Credits

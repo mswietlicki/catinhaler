@@ -16,3 +16,6 @@ __pycache__/
 .DS_Store
 Thumbs.db
 desktop.ini
+
+# website build (scripts/build_site.py)
+_site/

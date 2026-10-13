@@ -133,6 +133,10 @@ one_piece = false;
 show_section = false;
 $fn = 96;
 
+/* [Hidden] */
+// preview colour of the TPU parts (flap, umbrella); the STL has no colour
+TPU_COLOR = "#e0a526";
+
 // ---------------------------------------------------------------- derived
 cl = socket_clearance / 2;
 ma = mouth_h / 2 + cl;                 // socket half size along X
@@ -316,9 +320,9 @@ module assembly() {
         if (valve) {
             // insert pushed up to the ceiling stop, flap lying on it (shown closed; tab not drawn)
             translate([0, 0, z_c - insert_t]) color("silver") valve_insert();
-            translate([0, 0, z_c]) color("red") linear_extrude(flap_t) circle(d = flap_d);
+            translate([0, 0, z_c]) color(TPU_COLOR) linear_extrude(flap_t) circle(d = flap_d);
         }
-        if (ex_on) translate([r_ex, 0, seat_z + umbrella_t]) mirror([0, 0, 1]) color("red") umbrella();
+        if (ex_on) translate([r_ex, 0, seat_z + umbrella_t]) mirror([0, 0, 1]) color(TPU_COLOR) umbrella();
     }
 }
 
@@ -327,10 +331,10 @@ module exploded() {
     translate([0, 0, z_top - skirt_h]) {
         if (valve) {
             translate([0, 0, z_c - insert_t + 22]) color("silver") valve_insert();
-            translate([0, 0, z_c + 34]) color("red") valve_flap();
+            translate([0, 0, z_c + 34]) color(TPU_COLOR) valve_flap();
         }
         translate([0, 0, valve ? 50 : 25]) cap();
-        if (ex_on) translate([r_ex, 0, (valve ? 50 : 25) + seat_z + umbrella_t + 18]) mirror([0, 0, 1]) color("red") umbrella();
+        if (ex_on) translate([r_ex, 0, (valve ? 50 : 25) + seat_z + umbrella_t + 18]) mirror([0, 0, 1]) color(TPU_COLOR) umbrella();
     }
 }
 
@@ -348,9 +352,9 @@ module layout() {
         translate([chamber_d + 12, 0, 0]) cap();
         if (valve) {
             translate([-(chamber_d / 2 + bore_d / 2 + 10), 0, 0]) valve_insert();
-            translate([-(chamber_d / 2 + bore_d / 2 + 10), bore_d / 2 + flap_d / 2 + 8, 0]) valve_flap();
+            translate([-(chamber_d / 2 + bore_d / 2 + 10), bore_d / 2 + flap_d / 2 + 8, 0]) color(TPU_COLOR) valve_flap();
         }
-        if (ex_on) translate([-(chamber_d / 2 + bore_d / 2 + 10), -(bore_d / 2 + umbrella_d / 2 + 8), 0]) umbrella();
+        if (ex_on) translate([-(chamber_d / 2 + bore_d / 2 + 10), -(bore_d / 2 + umbrella_d / 2 + 8), 0]) color(TPU_COLOR) umbrella();
     }
 }
 
@@ -358,8 +362,8 @@ module selected() {
     if (part == "body")          { if (one_piece) one_piece_chamber(); else body(); }
     else if (part == "cap")      cap();
     else if (part == "insert")   valve_insert();
-    else if (part == "flap")     valve_flap();
-    else if (part == "umbrella") umbrella();
+    else if (part == "flap")     color(TPU_COLOR) valve_flap();
+    else if (part == "umbrella") color(TPU_COLOR) umbrella();
     else if (part == "assembly") { if (one_piece) one_piece_chamber(); else assembly(); }
     else if (part == "exploded") { if (one_piece) one_piece_chamber(); else exploded(); }
     else layout();

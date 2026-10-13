@@ -10,9 +10,10 @@ Targets:
     stl       printable parts (binary STL): both masks for every cat weight in SIZES -> stl/<weight>kg/,
               the holding chamber parts, which fit every size -> stl/common/
     png       OpenSCAD renders of single parts -> docs/img/*.png
-    svg       1:1 paper template of the cat face mask rim for every weight -> stl/<weight>kg/
+    svg       1:1 paper template of the cat face mask rim for every weight -> stl/<weight>kg/,
+              and in Polish for the website -> docs/img/pl/
     diagrams  scenes composed from the exported STLs (print layout, mask sizes, assembled system)
-              and the labelled sections drawn with matplotlib -> docs/img/*.png
+              and the labelled sections drawn with matplotlib -> docs/img/*.png (Polish copies -> docs/img/pl/)
 
 Needs OpenSCAD 2021.01 or newer (found on PATH, in the default install location, or set
 OPENSCAD / --openscad). The matplotlib diagrams also need the packages in
@@ -142,8 +143,10 @@ def mask_stl(name, kg):
     return STL / size_name(kg) / f"{name}_{size_name(kg)}.stl"
 
 
-def template_svg(kg):
-    return STL / size_name(kg) / f"cat_face_rim_template_{size_name(kg)}.svg"
+def template_svg(kg, lang="en"):
+    """English templates go with the STLs; translated ones (for the website) to docs/img/<lang>/."""
+    folder = STL / size_name(kg) if lang == "en" else IMG / lang
+    return folder / f"cat_face_rim_template_{size_name(kg)}.svg"
 
 
 def common_stl(name):
@@ -166,6 +169,36 @@ def export_job(openscad, out, src, params, extra=()):
     def job():
         Path(out).parent.mkdir(parents=True, exist_ok=True)
         return run_openscad(openscad, out, SCAD / src, params, extra)
+    return job
+
+
+def stl_triangles(path):
+    """Triangles of a binary STL in a canonical order: each starts at its smallest vertex (winding kept), then sorted."""
+    data = Path(path).read_bytes()
+    tris = []
+    for i in range(struct.unpack_from("<I", data, 80)[0]):
+        v = struct.unpack_from("<9f", data, 84 + 50 * i + 12)
+        t = [v[0:3], v[3:6], v[6:9]]
+        k = t.index(min(t))
+        tris.append(tuple(t[k:] + t[:k]))
+    return sorted(tris)
+
+
+def stl_job(openscad, out, src, params):
+    """Export a binary STL. CGAL does not write triangles in a stable order, so an existing file with the
+    same triangles is kept as it is: regenerating then leaves git without spurious binary changes."""
+    def job():
+        out.parent.mkdir(parents=True, exist_ok=True)
+        new = out.with_name(f".{out.stem}.new.stl")
+        try:
+            result = run_openscad(openscad, new, SCAD / src, params, ["--export-format", "binstl"])
+            if out.is_file() and stl_triangles(out) == stl_triangles(new):
+                new.unlink()
+            else:
+                new.replace(out)
+            return result
+        finally:
+            new.unlink(missing_ok=True)
     return job
 
 
@@ -332,7 +365,7 @@ def build_diagrams(openscad, workers):
             "cat_face": mask_stl("cat_face_inhaler_mask", DOCS_SIZE),
             "round": mask_stl("round_cushion_inhaler_mask", DOCS_SIZE)}
     for out in diagrams.build(stls, IMG, p, colors={"tpu": TPU_COLOR, "rigid": RIGID_COLOR}):
-        print(f"  {out.name}")
+        print(f"  {rel(out)}")
     return failures
 
 
@@ -355,14 +388,15 @@ def main():
     t0, failures = time.time(), 0
     jobs = []
     if "stl" in targets:
-        jobs += [(rel(out), export_job(openscad, out, src, params, ["--export-format", "binstl"]))
+        jobs += [(rel(out), stl_job(openscad, out, src, params))
                  for out, src, params in stl_targets()]
     if "png" in targets:
         jobs += [(f"docs/img/{n}.png", (lambda n=n, s=s, r=r, p=p: png_job(openscad, IMG / f"{n}.png", SCAD / s, r, p)))
                  for n, s, r, p in PNGS]
     if "svg" in targets:
-        jobs += [(rel(template_svg(kg)), export_job(openscad, template_svg(kg), MASK, {"part": "template", "cat_weight_kg": kg}))
-                 for kg in SIZES]
+        jobs += [(rel(template_svg(kg, lang)),
+                  export_job(openscad, template_svg(kg, lang), MASK, {"part": "template", "cat_weight_kg": kg, "template_lang": lang}))
+                 for lang in ("en", "pl") for kg in SIZES]
     if jobs:
         failures += run_jobs(jobs, args.jobs)
     if "diagrams" in targets:
