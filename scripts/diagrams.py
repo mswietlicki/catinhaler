@@ -26,8 +26,8 @@ def shade(color, f):
     return tuple(c * f) if f <= 1 else tuple(c + (1 - c) * (f - 1))
 
 
-def load(stl_dir, name):
-    m = trimesh.load(Path(stl_dir) / f"{name}.stl", force="mesh")
+def load(path):
+    m = trimesh.load(path, force="mesh")
     if m.volume < 0:
         m.invert()
     return m
@@ -338,13 +338,12 @@ def mask_sections(m, c, out):
     return save(fig, out)
 
 
-def build(stl_dir, img_dir, p, colors):
+def build(stls, img_dir, p, colors):
+    """stls: STL paths keyed body, cap, insert, umbrella, cat_face, round."""
     img_dir = Path(img_dir)
     c = {"tpu": colors["tpu"], "body": shade(colors["rigid"], 1.25), "cap": colors["rigid"],
          "insert": (0.62, 0.62, 0.66)}
-    m = {"body": load(stl_dir, "holding_chamber_body"), "cap": load(stl_dir, "holding_chamber_cap"),
-         "insert": load(stl_dir, "holding_chamber_valve_insert"), "umbrella": load(stl_dir, "holding_chamber_umbrella"),
-         "cat_face": load(stl_dir, "cat_face_inhaler_mask"), "round": load(stl_dir, "round_cushion_inhaler_mask")}
+    m = {key: load(path) for key, path in stls.items()}
     return [
         chamber_section(m, p, c, img_dir / "chamber_section_labeled.png"),
         exhale_detail(m, p, c, img_dir / "exhale_valve_detail.png"),

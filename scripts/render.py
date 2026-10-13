@@ -7,11 +7,12 @@
     python scripts/render.py diagrams        # only the composed scenes and labelled diagrams
 
 Targets:
-    stl       printable parts -> stl/*.stl (binary)
+    stl       printable parts (binary STL): both masks for every cat weight in SIZES -> stl/<weight>kg/,
+              the holding chamber parts, which fit every size -> stl/common/
     png       OpenSCAD renders of single parts -> docs/img/*.png
-    svg       1:1 paper template of the cat face mask rim -> docs/cat_face_rim_template.svg
-    diagrams  scenes composed from the exported STLs (print layout, assembled system) and the
-              labelled sections drawn with matplotlib -> docs/img/*.png
+    svg       1:1 paper template of the cat face mask rim for every weight -> stl/<weight>kg/
+    diagrams  scenes composed from the exported STLs (print layout, mask sizes, assembled system)
+              and the labelled sections drawn with matplotlib -> docs/img/*.png
 
 Needs OpenSCAD 2021.01 or newer (found on PATH, in the default install location, or set
 OPENSCAD / --openscad). The matplotlib diagrams also need the packages in
@@ -40,16 +41,19 @@ MASK = "cat_face_inhaler_mask.scad"
 ROUND = "round_cushion_inhaler_mask.scad"
 CHAMBER = "holding_chamber.scad"
 
-# output name, source file, parameter overrides (the round mask is first because it takes longest)
-STLS = [
-    ("round_cushion_inhaler_mask", ROUND, {}),
-    ("cat_face_inhaler_mask", MASK, {}),
-    ("holding_chamber_body", CHAMBER, {"part": "body"}),
-    ("holding_chamber_cap", CHAMBER, {"part": "cap"}),
-    ("holding_chamber_valve_insert", CHAMBER, {"part": "insert"}),
-    ("holding_chamber_valve_flap", CHAMBER, {"part": "flap"}),
-    ("holding_chamber_umbrella", CHAMBER, {"part": "umbrella"}),
-    ("holding_chamber_one_piece_spacer", CHAMBER, {"part": "body", "one_piece": True, "valve": False}),
+# cat weights (kg) the masks are exported for; each gets stl/<weight>kg/ with both masks and the paper template
+SIZES = [3.3, 4, 5, 6]
+# the cat_weight_kg default in the mask files: the renders and diagrams in docs/ show this size
+DOCS_SIZE = 3.3
+
+# holding chamber parts, the same for every size (slowest first): output name, parameter overrides
+COMMON = [
+    ("holding_chamber_one_piece_spacer", {"part": "body", "one_piece": True, "valve": False}),
+    ("holding_chamber_cap", {"part": "cap"}),
+    ("holding_chamber_body", {"part": "body"}),
+    ("holding_chamber_valve_insert", {"part": "insert"}),
+    ("holding_chamber_valve_flap", {"part": "flap"}),
+    ("holding_chamber_umbrella", {"part": "umbrella"}),
 ]
 
 # output name, source file, camera rotation about X and Z in degrees, parameter overrides
@@ -76,7 +80,7 @@ PNGS = [
     ("chamber_one_piece", CHAMBER, (65, 30), {"part": "body", "one_piece": True, "valve": False}),
 ]
 
-PNG_OPTS = ["--imgsize=1400,1050", "--viewall", "--autocenter", "--projection=p", "--colorscheme=Tomorrow"]
+PNG_OPTS = ["--viewall", "--autocenter", "--projection=p", "--colorscheme=Tomorrow"]
 
 # holding_chamber.scad variables the diagrams are dimensioned from
 CHAMBER_VARS = [
@@ -130,13 +134,46 @@ def run_openscad(openscad, out, src, params=None, extra=()):
     return time.time() - t0, issues
 
 
-def stl_job(openscad, name, src, params):
-    return run_openscad(openscad, STL / f"{name}.stl", SCAD / src, params, ["--export-format", "binstl"])
+def size_name(kg):
+    return f"{kg:g}kg"
 
 
-def png_job(openscad, out, src, rot, params, distance=300):
+def mask_stl(name, kg):
+    return STL / size_name(kg) / f"{name}_{size_name(kg)}.stl"
+
+
+def template_svg(kg):
+    return STL / size_name(kg) / f"cat_face_rim_template_{size_name(kg)}.svg"
+
+
+def common_stl(name):
+    return STL / "common" / f"{name}.stl"
+
+
+def stl_targets():
+    """(output, source, parameter overrides) for every STL, the slow ones first."""
+    def masks(name, src):
+        return [(mask_stl(name, kg), src, {"cat_weight_kg": kg}) for kg in SIZES]
+    common = [(common_stl(name), CHAMBER, params) for name, params in COMMON]
+    return masks("round_cushion_inhaler_mask", ROUND) + common + masks("cat_face_inhaler_mask", MASK)
+
+
+def rel(path):
+    return Path(path).relative_to(ROOT).as_posix()
+
+
+def export_job(openscad, out, src, params, extra=()):
+    def job():
+        Path(out).parent.mkdir(parents=True, exist_ok=True)
+        return run_openscad(openscad, out, SCAD / src, params, extra)
+    return job
+
+
+def png_job(openscad, out, src, rot, params, distance=300, size=(1400, 1050), fit=True):
+    """fit: centre and zoom to the whole model; otherwise the camera looks at the origin from the given distance."""
     camera = f"--camera=0,0,0,{rot[0]},0,{rot[1]},{distance}"
-    return run_openscad(openscad, out, src, params, PNG_OPTS + [camera])
+    opts = PNG_OPTS if fit else [o for o in PNG_OPTS if o not in ("--viewall", "--autocenter")]
+    return run_openscad(openscad, out, src, params, opts + [f"--imgsize={size[0]},{size[1]}", camera])
 
 
 def run_jobs(jobs, workers):
@@ -147,12 +184,12 @@ def run_jobs(jobs, workers):
         for label, fut in futures:
             try:
                 secs, issues = fut.result()
-                print(f"  {label:<44} {secs:6.1f} s")
+                print(f"  {label:<52} {secs:6.1f} s")
                 for line in issues:
                     print(f"      {line}")
             except RuntimeError as e:
                 failures += 1
-                print(f"  {label:<44} FAILED")
+                print(f"  {label:<52} FAILED")
                 for line in str(e).splitlines():
                     print(f"      {line}")
     return failures
@@ -191,38 +228,65 @@ def stl_bounds(path):
     return lo, hi
 
 
-def scene_job(openscad, name, scad_text, rot, distance):
+def scene_job(openscad, name, scad_text, rot, distance, size=(1400, 1050), fit=True):
     def job():
         with tempfile.TemporaryDirectory() as tmp:
             src = Path(tmp) / f"{name}.scad"
             src.write_text(scad_text, encoding="utf-8")
-            return png_job(openscad, IMG / f"{name}.png", src, rot, {}, distance)
+            return png_job(openscad, IMG / f"{name}.png", src, rot, {}, distance, size, fit)
     return job
 
 
+def placed(path, color, x, y, z):
+    return f'color("{color}") translate([{x:.2f}, {y:.2f}, {z:.2f}]) import("{scad_path(path)}");'
+
+
 def print_layout_scene():
-    """Every printable part as exported, in print orientation, coloured by material."""
-    big = [("holding_chamber_body", RIGID_COLOR), ("holding_chamber_cap", RIGID_COLOR),
-           ("cat_face_inhaler_mask", TPU_COLOR), ("round_cushion_inhaler_mask", TPU_COLOR)]
-    small = [("holding_chamber_valve_insert", RIGID_COLOR), ("holding_chamber_valve_flap", TPU_COLOR),
-             ("holding_chamber_umbrella", TPU_COLOR)]
+    """Every printable part as exported (masks at the docs size), in print orientation, coloured by material."""
+    big = [(common_stl("holding_chamber_body"), RIGID_COLOR), (common_stl("holding_chamber_cap"), RIGID_COLOR),
+           (mask_stl("cat_face_inhaler_mask", DOCS_SIZE), TPU_COLOR),
+           (mask_stl("round_cushion_inhaler_mask", DOCS_SIZE), TPU_COLOR)]
+    small = [(common_stl("holding_chamber_valve_insert"), RIGID_COLOR), (common_stl("holding_chamber_valve_flap"), TPU_COLOR),
+             (common_stl("holding_chamber_umbrella"), TPU_COLOR)]
     gap = 10
     lines, x = [], 0.0
-    for name, color in big:
-        lo, hi = stl_bounds(STL / f"{name}.stl")
-        cx, cy = x - lo[0], -(lo[1] + hi[1]) / 2
-        lines.append(f'color("{color}") translate([{cx:.2f}, {cy:.2f}, {-lo[2]:.2f}]) import("{scad_path(STL / name)}.stl");')
+    for path, color in big:
+        lo, hi = stl_bounds(path)
+        lines.append(placed(path, color, x - lo[0], -(lo[1] + hi[1]) / 2, -lo[2]))
         x += hi[0] - lo[0] + gap
     # small parts in a column in front of the body
     y = None
-    for name, color in small:
-        lo, hi = stl_bounds(STL / f"{name}.stl")
+    for path, color in small:
+        lo, hi = stl_bounds(path)
         if y is None:
             y = -max(20.0, (hi[1] - lo[1]) / 2) - gap
-        cx, cy = -lo[0] - (hi[0] - lo[0]) - gap, y - hi[1]
-        lines.append(f'color("{color}") translate([{cx:.2f}, {cy:.2f}, {-lo[2]:.2f}]) import("{scad_path(STL / name)}.stl");')
+        lines.append(placed(path, color, -lo[0] - (hi[0] - lo[0]) - gap, y - hi[1], -lo[2]))
         y -= hi[1] - lo[1] + gap
     return "\n".join(lines) + "\n"
+
+
+def mask_sizes_scene():
+    """Both masks for every size side by side (cat face behind, round in front), labelled with the cat weight."""
+    rows = ["cat_face_inhaler_mask", "round_cushion_inhaler_mask"]
+    gap, row_gap = 12, 30
+    bounds = {(name, kg): stl_bounds(mask_stl(name, kg)) for name in rows for kg in SIZES}
+    depth = {name: max(hi[1] - lo[1] for (n, _), (lo, hi) in bounds.items() if n == name) for name in rows}
+    row_y = {rows[0]: 0.0, rows[1]: -(depth[rows[0]] + depth[rows[1]]) / 2 - row_gap}
+    label_y = row_y[rows[1]] - depth[rows[1]] / 2 - 22
+    height = max(hi[2] - lo[2] for lo, hi in bounds.values())
+    lines, x = [], 0.0
+    for kg in SIZES:
+        width = max(bounds[name, kg][1][0] - bounds[name, kg][0][0] for name in rows)
+        cx = x + width / 2
+        for name in rows:
+            lo, hi = bounds[name, kg]
+            lines.append(placed(mask_stl(name, kg), TPU_COLOR, cx - (lo[0] + hi[0]) / 2, row_y[name] - (lo[1] + hi[1]) / 2, -lo[2]))
+        lines.append(f'color("#4a4a4a") translate([{cx:.2f}, {label_y:.2f}, 0]) linear_extrude(0.6) '
+                     f'text("{kg:g} kg", size = 8, halign = "center", font = "Liberation Sans:style=Bold");')
+        x += width + gap
+    # centred on the origin, where the fixed camera looks
+    cx, cy, cz = (x - gap) / 2, (depth[rows[0]] / 2 + label_y - 4) / 2, height / 2
+    return f"translate([{-cx:.2f}, {-cy:.2f}, {-cz:.2f}]) {{\n" + "\n".join(lines) + "\n}\n"
 
 
 def system_scene(p):
@@ -233,9 +297,9 @@ def system_scene(p):
     # schematic pMDI, modelled upright (boot along +Z, mouthpiece along +X) and turned so the mouthpiece
     # points up into the chamber socket, its tip 3 mm inside
     return f"""
-color("{RIGID_COLOR}") import("{scad_path(STL / 'holding_chamber_body.stl')}");
-color("{RIGID_COLOR}") translate([0, 0, {cap_z}]) import("{scad_path(STL / 'holding_chamber_cap.stl')}");
-color("{TPU_COLOR}") translate([0, 0, {mask_z}]) import("{scad_path(STL / 'cat_face_inhaler_mask.stl')}");
+{placed(common_stl("holding_chamber_body"), RIGID_COLOR, 0, 0, 0)}
+{placed(common_stl("holding_chamber_cap"), RIGID_COLOR, 0, 0, cap_z)}
+{placed(mask_stl("cat_face_inhaler_mask", DOCS_SIZE), TPU_COLOR, 0, 0, mask_z)}
 translate([12, 0, 3 - 36]) rotate([0, -90, 0]) {{
     color("{INHALER_COLOR}") {{
         hull() for (x = [-4, 4]) translate([x, 0, 0]) cylinder(d = 26, h = 62, $fn = 48);
@@ -252,6 +316,7 @@ def build_diagrams(openscad, workers):
     print("  composed scenes (from the STLs in stl/)")
     failures = run_jobs([
         ("print_layout.png", scene_job(openscad, "print_layout", print_layout_scene(), (55, 20), 520)),
+        ("mask_sizes.png", scene_job(openscad, "mask_sizes", mask_sizes_scene(), (55, 0), 560, (1600, 900), fit=False)),
         ("system_assembled.png", scene_job(openscad, "system_assembled", system_scene(p), (75, 25), 480)),
     ], workers)
     try:
@@ -262,7 +327,11 @@ def build_diagrams(openscad, workers):
         print(f"  skipping the matplotlib diagrams ({e}); install them with: pip install -r scripts/requirements.txt")
         return failures
     print("  labelled diagrams (matplotlib)")
-    for out in diagrams.build(STL, IMG, p, colors={"tpu": TPU_COLOR, "rigid": RIGID_COLOR}):
+    stls = {"body": common_stl("holding_chamber_body"), "cap": common_stl("holding_chamber_cap"),
+            "insert": common_stl("holding_chamber_valve_insert"), "umbrella": common_stl("holding_chamber_umbrella"),
+            "cat_face": mask_stl("cat_face_inhaler_mask", DOCS_SIZE),
+            "round": mask_stl("round_cushion_inhaler_mask", DOCS_SIZE)}
+    for out in diagrams.build(stls, IMG, p, colors={"tpu": TPU_COLOR, "rigid": RIGID_COLOR}):
         print(f"  {out.name}")
     return failures
 
@@ -286,13 +355,14 @@ def main():
     t0, failures = time.time(), 0
     jobs = []
     if "stl" in targets:
-        jobs += [(f"stl/{n}.stl", (lambda n=n, s=s, p=p: stl_job(openscad, n, s, p))) for n, s, p in STLS]
+        jobs += [(rel(out), export_job(openscad, out, src, params, ["--export-format", "binstl"]))
+                 for out, src, params in stl_targets()]
     if "png" in targets:
         jobs += [(f"docs/img/{n}.png", (lambda n=n, s=s, r=r, p=p: png_job(openscad, IMG / f"{n}.png", SCAD / s, r, p)))
                  for n, s, r, p in PNGS]
     if "svg" in targets:
-        jobs.append(("docs/cat_face_rim_template.svg",
-                     lambda: run_openscad(openscad, DOCS / "cat_face_rim_template.svg", SCAD / MASK, {"part": "template"})))
+        jobs += [(rel(template_svg(kg)), export_job(openscad, template_svg(kg), MASK, {"part": "template", "cat_weight_kg": kg}))
+                 for kg in SIZES]
     if jobs:
         failures += run_jobs(jobs, args.jobs)
     if "diagrams" in targets:

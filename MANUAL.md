@@ -3,7 +3,7 @@
 Parametric OpenSCAD designs for giving a cat its metered-dose inhaler (Ventolin / salbutamol type and similar pMDIs):
 two mask adapters that push straight onto the inhaler mouthpiece, and a small valved holding chamber that goes between the inhaler and a mask.
 
-The defaults in this folder are sized for a **3.3 kg cat** and for a mouthpiece of **25.4 x 19.6 mm**. Both are easy to change, see [Customising](#9-customising-and-regenerating-the-stls).
+The masks are exported for cats of **3.3, 4, 5 and 6 kg** (see [Pick the mask size](#22-pick-the-mask-size)); the chamber fits all of them. Every part is made for a mouthpiece of **25.4 x 19.6 mm**. Size and mouthpiece are easy to change, see [Customising](#9-customising-and-regenerating-the-stls).
 
 > **Please read.** These are hobby designs, not medical devices. Use them only with your veterinarian's guidance, follow the vet's dosing instructions, check every printed part for sharp edges and loose strands before it goes near your cat, and never force a mask on a struggling animal. The valves are printed approximations of the silicone valves in commercial chambers and have not been laboratory tested.
 
@@ -17,17 +17,17 @@ The defaults in this folder are sized for a **3.3 kg cat** and for a mouthpiece 
 
 | Part | File | Printed in | What it does |
 |---|---|---|---|
-| Cat face mask | `stl/cat_face_inhaler_mask.stl` | TPU | Anatomical mask with a tilted rim (deeper under the chin). Remake of the "ventolin cat face v4" design. |
-| Round cushion mask | `stl/round_cushion_inhaler_mask.stl` | TPU | Round mask with a hollow rolled lip that acts as a soft cushion. Remake of the "inhalateur2" design. |
-| Chamber body | `stl/holding_chamber_body.stl` | PETG or PLA | Inhaler socket, inlet cone and 40 mm tube (about 105 ml). |
-| Chamber cap | `stl/holding_chamber_cap.stl` | PETG or PLA | Press-fit lid with the mask nozzle and the two valve seats. |
-| Inhalation valve insert | `stl/holding_chamber_valve_insert.stl` | PETG or PLA | Disc with a grille and a hinge slot. Seat for the flap. |
-| Inhalation flap | `stl/holding_chamber_valve_flap.stl` | TPU | 0.6 mm flap. Opens when the cat breathes in. |
-| Exhalation umbrella | `stl/holding_chamber_umbrella.stl` | TPU | 0.4 mm umbrella valve. Lets exhaled air out of the cap. |
-| One-piece spacer | `stl/holding_chamber_one_piece_spacer.stl` | PETG or PLA | Alternative: body and cap fused, no valves. Simplest print. |
-| Paper template | `docs/cat_face_rim_template.svg` | paper | 1:1 outline of the cat face mask rim to hold against the cat before printing. |
+| Cat face mask | `stl/<size>/cat_face_inhaler_mask_<size>.stl` | TPU | Anatomical mask with a tilted rim (deeper under the chin). Remake of the "ventolin cat face v4" design. |
+| Round cushion mask | `stl/<size>/round_cushion_inhaler_mask_<size>.stl` | TPU | Round mask with a hollow rolled lip that acts as a soft cushion. Remake of the "inhalateur2" design. |
+| Paper template | `stl/<size>/cat_face_rim_template_<size>.svg` | paper | 1:1 outline of the cat face mask rim to hold against the cat before printing. |
+| Chamber body | `stl/common/holding_chamber_body.stl` | PETG or PLA | Inhaler socket, inlet cone and 40 mm tube (about 105 ml). |
+| Chamber cap | `stl/common/holding_chamber_cap.stl` | PETG or PLA | Press-fit lid with the mask nozzle and the two valve seats. |
+| Inhalation valve insert | `stl/common/holding_chamber_valve_insert.stl` | PETG or PLA | Disc with a grille and a hinge slot. Seat for the flap. |
+| Inhalation flap | `stl/common/holding_chamber_valve_flap.stl` | TPU | 0.6 mm flap. Opens when the cat breathes in. |
+| Exhalation umbrella | `stl/common/holding_chamber_umbrella.stl` | TPU | 0.4 mm umbrella valve. Lets exhaled air out of the cap. |
+| One-piece spacer | `stl/common/holding_chamber_one_piece_spacer.stl` | PETG or PLA | Alternative: body and cap fused, no valves. Simplest print. |
 
-Source files (in `scad/`): `cat_face_inhaler_mask.scad`, `round_cushion_inhaler_mask.scad`, `holding_chamber.scad`.
+`<size>` is one of `3.3kg`, `4kg`, `5kg`, `6kg`. Source files (in `scad/`): `cat_face_inhaler_mask.scad`, `round_cushion_inhaler_mask.scad`, `holding_chamber.scad`.
 
 ### Parts gallery
 
@@ -38,7 +38,7 @@ Source files (in `scad/`): `cat_face_inhaler_mask.scad`, `round_cushion_inhaler_
 | ![Chamber body](docs/img/chamber_body_iso.png) Chamber body | ![Chamber cap](docs/img/chamber_cap_iso.png) Chamber cap | ![Chamber cap, lid](docs/img/chamber_cap_top.png) Cap lid: nozzle and exhalation pocket |
 | ![Valve insert](docs/img/chamber_valve_insert.png) Inhalation valve insert | ![Flap](docs/img/chamber_valve_flap.png) Inhalation flap | ![Umbrella](docs/img/chamber_umbrella.png) Exhalation umbrella |
 
-Renders are from OpenSCAD with the default parameters; the one-piece spacer is shown in section 3.
+Renders are from OpenSCAD with the default parameters (masks for 3.3 kg); the one-piece spacer is shown in section 3.
 
 ### How the pieces go together
 
@@ -75,11 +75,24 @@ Put the same three values in all three `.scad` files (the *Inhaler socket* group
 
 ### 2.2 Pick the mask size
 
-Mask size scales from `cat_weight_kg` using the cube root of the weight ratio, relative to an assumed 4.5 kg cat for the original design. For 3.3 kg that gives a scale of 0.90 and a cat face rim of about 43 x 44 mm. Check it before printing:
+Mask size scales from `cat_weight_kg` using the cube root of the weight ratio, relative to an assumed 4.5 kg cat for the original design. Only the cup and rim scale; the inhaler socket is the same in every size, so every mask fits the inhaler and the chamber nozzle. Four sizes are exported ready to print:
 
-1. Open `cat_face_inhaler_mask.scad`, set `part = "template"`, render (F6) and export SVG, or print `docs/cat_face_rim_template.svg` at 100 % scale (check the 50 mm bar with a ruler).
+| Cat weight | Folder | Scale | Cat face mask rim (outer) | Cat face mask height | Round mask diameter | Round mask height |
+|---|---|---|---|---|---|---|
+| 3.3 kg | `stl/3.3kg/` | 0.90 | 42.7 x 44.3 mm | 48.8 mm | 39.7 mm | 35.8 mm |
+| 4 kg | `stl/4kg/` | 0.96 | 45.5 x 47.2 mm | 50.6 mm | 42.3 mm | 36.9 mm |
+| 5 kg | `stl/5kg/` | 1.04 | 49.1 x 50.9 mm | 52.8 mm | 45.6 mm | 38.3 mm |
+| 6 kg | `stl/6kg/` | 1.10 | 52.1 x 54.1 mm | 54.7 mm | 48.4 mm | 39.4 mm |
+
+![Masks in the four sizes](docs/img/mask_sizes.png)
+
+Weight is only a starting point. Face size depends on breed and build, and an overweight cat does not have a bigger face. Check with the paper template before printing:
+
+1. Print `stl/<size>/cat_face_rim_template_<size>.svg` at 100 % scale and check the 50 mm bar with a ruler. Printing the two sizes nearest your cat's weight makes the comparison easy.
 2. Hold the paper against your cat's face. The outline must cover nose and mouth with the whiskers folded, and stay below the eyes.
-3. Too small or too large: change `cat_weight_kg`, or set `rim_length` / `rim_width` in millimetres directly.
+3. Pick the size that fits. If none does, set `cat_weight_kg` in the mask file to an in-between value, or set `rim_length` / `rim_width` (cat face) or `rim_d` (round) in millimetres. Then export the mask and, from the cat face file with `part = "template"`, a new template (F6, export SVG).
+
+The round mask has no template: its rim is a circle of the diameter in the table, 3 to 5 mm smaller than the cat face mask rim of the same size.
 
 ![Rim template](docs/img/cat_face_rim_template_preview.png)
 
@@ -146,8 +159,14 @@ PETG is the first choice (tough, dishwasher-safe at low temperature, less static
 
 | Part | Size (mm) | Volume | Approx. weight |
 |---|---|---|---|
-| Cat face mask | 44 x 46 x 49 | 12.6 cm3 | 15 g TPU |
-| Round cushion mask | 40 x 40 x 36 | 13.3 cm3 | 16 g TPU |
+| Cat face mask, 3.3 kg | 44 x 46 x 49 | 12.6 cm3 | 15 g TPU |
+| Cat face mask, 4 kg | 47 x 49 x 51 | 13.1 cm3 | 16 g TPU |
+| Cat face mask, 5 kg | 51 x 53 x 53 | 13.8 cm3 | 17 g TPU |
+| Cat face mask, 6 kg | 54 x 56 x 55 | 14.5 cm3 | 18 g TPU |
+| Round cushion mask, 3.3 kg | 40 x 40 x 36 | 13.3 cm3 | 16 g TPU |
+| Round cushion mask, 4 kg | 42 x 42 x 37 | 13.9 cm3 | 17 g TPU |
+| Round cushion mask, 5 kg | 46 x 46 x 38 | 14.7 cm3 | 18 g TPU |
+| Round cushion mask, 6 kg | 48 x 48 x 39 | 15.6 cm3 | 19 g TPU |
 | Chamber body | 40 x 40 x 110 | 27.6 cm3 | 35 g PETG |
 | Chamber cap | 48 x 48 x 41 | 20.4 cm3 | 26 g PETG |
 | Valve insert | 32 x 32 x 1.6 | 1.0 cm3 | 1 g |
@@ -254,7 +273,7 @@ Do not boil, dishwash on hot, or leave in a sunny car: TPU and PLA deform.
 | Inhaler will not go into the socket | TPU shrinks a little. Set `socket_clearance = 0.3` in the mask / chamber file and reprint, or enlarge `mouth_w` / `mouth_h` after measuring. |
 | Inhaler falls out | Set `socket_clearance = -0.2` or raise `socket_taper` to 5. |
 | Chamber nozzle loose in the mask | Set `nozzle_oversize = 0.3` in `holding_chamber.scad`. |
-| Mask too big / too small | Change `cat_weight_kg`, or set `rim_length` / `rim_width` (cat face) or `rim_d` (round) in mm. Print the paper template first. |
+| Mask too big / too small | Try the next size folder. Between sizes, change `cat_weight_kg`, or set `rim_length` / `rim_width` (cat face) or `rim_d` (round) in mm. Print the paper template first. |
 | Flap sticks or does not close | Make sure it lies flat; trim the bulb if it pulls the disc up. A flap printed with wet filament curls: dry the TPU. |
 | Umbrella leaks on inhalation | The disc must be flat on the pocket floor. Reprint at 0.4 mm with 100 % infill; check the pocket floor for strings. |
 | Cat resists exhaling | Check the umbrella moves freely. Never block the pocket. |
@@ -283,7 +302,7 @@ Parameters you will most likely touch:
 
 ### Regenerating everything from the command line
 
-`scripts/render.py` rebuilds the STLs, all images in `docs/img/` and the paper template from the `.scad` files, so after changing a default in a `.scad` file one command brings the whole repo up to date. It needs Python 3.8+ and OpenSCAD 2021.01 or newer (found on `PATH`, in the default install folder, or given with `--openscad` / the `OPENSCAD` environment variable).
+`scripts/render.py` rebuilds the STLs and paper templates for every size and all images in `docs/img/` from the `.scad` files, so after changing a default in a `.scad` file one command brings the whole repo up to date. The cat weights it exports are the `SIZES` list at the top of the script; the images in `docs/` show the 3.3 kg masks. It needs Python 3.8+ and OpenSCAD 2021.01 or newer (found on `PATH`, in the default install folder, or given with `--openscad` / the `OPENSCAD` environment variable).
 
 ```bash
 python scripts/render.py
@@ -291,17 +310,21 @@ python scripts/render.py
 
 | Target | Output |
 |---|---|
-| `stl` | the printable parts in `stl/` (binary STL) |
+| `stl` | both masks for every size in `stl/<size>/`, the chamber parts in `stl/common/` (binary STL) |
 | `png` | OpenSCAD renders of single parts in `docs/img/` |
-| `svg` | `docs/cat_face_rim_template.svg` |
-| `diagrams` | `print_layout.png` and `system_assembled.png` composed from the exported STLs, and the labelled sections drawn with matplotlib |
+| `svg` | the paper template for every size, `stl/<size>/cat_face_rim_template_<size>.svg` |
+| `diagrams` | `print_layout.png`, `mask_sizes.png` and `system_assembled.png` composed from the exported STLs, and the labelled sections drawn with matplotlib |
 
-Pass one or more targets to build only those, for example `python scripts/render.py stl`. The labelled diagrams need the packages in `scripts/requirements.txt` (`pip install -r scripts/requirements.txt`); without them that step is skipped with a warning. The exports run in parallel; the slowest is the round mask, about a minute in OpenSCAD 2021 (CGAL). PNG export needs OpenGL, so on a headless Linux machine run the script under `xvfb-run`.
+Pass one or more targets to build only those, for example `python scripts/render.py stl`. The labelled diagrams need the packages in `scripts/requirements.txt` (`pip install -r scripts/requirements.txt`); without them that step is skipped with a warning. The exports run in parallel; the slowest is the round mask, up to a minute per size in OpenSCAD 2021 (CGAL). PNG export needs OpenGL, so on a headless Linux machine run the script under `xvfb-run`.
 
-To export a single part by hand, pass the `part` value with `-D`:
+To export a single part by hand, pass the parameters with `-D`, for example the cap, or a cat face mask for a 4.5 kg cat:
 
 ```bash
-openscad -o stl/holding_chamber_cap.stl --export-format binstl -D 'part="cap"' scad/holding_chamber.scad
+openscad -o stl/common/holding_chamber_cap.stl --export-format binstl -D 'part="cap"' scad/holding_chamber.scad
+```
+
+```bash
+openscad -o cat_face_inhaler_mask_4.5kg.stl --export-format binstl -D cat_weight_kg=4.5 scad/cat_face_inhaler_mask.scad
 ```
 
 ---
