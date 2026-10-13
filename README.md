@@ -1,4 +1,4 @@
-# areocat
+# CatInhaler
 
 3D-printable, parametric (OpenSCAD) adapters for giving a cat a metered-dose inhaler (Ventolin / salbutamol type pMDI):
 
