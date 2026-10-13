@@ -1,0 +1,6 @@
+# only needed for the labelled diagrams (python scripts/render.py diagrams)
+numpy
+matplotlib
+trimesh
+shapely
+networkx

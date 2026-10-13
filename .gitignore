@@ -1,0 +1,18 @@
+# slicer projects and output
+*.3mf
+*.gcode
+*.bgcode
+
+# editor and OpenSCAD backups
+*.bak
+*~
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
