@@ -21,9 +21,9 @@ The masks are exported for cats of **3.3, 4, 5 and 6 kg** (see [Pick the mask si
 | Round cushion mask | `stl/<size>/round_cushion_inhaler_mask_<size>.stl` | TPU | Round mask with a hollow rolled lip that acts as a soft cushion. Remake of the "inhalateur2" design. |
 | Paper template | `stl/<size>/cat_face_rim_template_<size>.svg` | paper | 1:1 outline of the cat face mask rim to hold against the cat before printing. |
 | Chamber body | `stl/common/holding_chamber_body.stl` | PETG or PLA | Inhaler socket, inlet cone and 40 mm tube (about 105 ml). |
-| Chamber cap | `stl/common/holding_chamber_cap.stl` | PETG or PLA | Press-fit lid with the mask nozzle and the two valve seats. |
+| Chamber cap | `stl/common/holding_chamber_cap.stl` | PETG or PLA | Lid with the mask nozzle and the two valve seats. Crush ribs on its skirt hold it in the body. |
 | Inhalation valve insert | `stl/common/holding_chamber_valve_insert.stl` | PETG or PLA | Disc with a grille and a hinge slot. Seat for the flap. |
-| Inhalation flap | `stl/common/holding_chamber_valve_flap.stl` | TPU | 0.6 mm flap. Opens when the cat breathes in. |
+| Inhalation flap | `stl/common/holding_chamber_valve_flap.stl` | TPU | 0.6 mm flap with a hinge tab printed standing up. Opens when the cat breathes in. |
 | Exhalation umbrella | `stl/common/holding_chamber_umbrella.stl` | TPU | 0.4 mm umbrella valve. Lets exhaled air out of the cap. |
 | One-piece spacer | `stl/common/holding_chamber_one_piece_spacer.stl` | PETG or PLA | Alternative: body and cap fused, no valves. Simplest print. |
 
@@ -117,7 +117,7 @@ Tested target: TPU 95A on a 0.4 mm nozzle (direct drive preferred; Bowden works 
 
 | Setting | Masks | Flap and umbrella |
 |---|---|---|
-| Layer height | 0.2 mm | 0.2 mm (the flap is exactly 3 layers, the umbrella disc 2) |
+| Layer height | 0.2 mm | 0.2 mm (the flap disc is exactly 3 layers, the umbrella disc 2) |
 | Perimeters | 4 (cup wall 1.6 mm), 5 or more for the stem (2.0 mm) | 3+, 100 % infill |
 | Infill | not needed, the parts are solid walls | 100 % |
 | Top/bottom layers | 3 | n/a |
@@ -132,6 +132,7 @@ Notes:
 
 - The mask wall is a multiple of the 0.4 mm line width (1.6 mm = 4 lines), so set perimeters high enough that the slicer fills the whole wall with walls and no gap fill.
 - Round cushion mask: the hollow inside the rolled lip is bridged by the slicer over about 5 mm. Expect a rough interior; it is invisible and harmless. If your printer bridges TPU badly, set `lip_style = "bead"` for a solid rim.
+- Flap: print disc down, with the hinge tab standing up at the edge as in the STL (6.6 mm tall, 0.8 mm = 2 lines thick). Do not lay the tab flat: it has to come off the bed already bent at 90 degrees, otherwise it springs back once it is through the slot and lifts the disc off the seat.
 - Umbrella: print disc down, stem up (the part is 4.3 mm tall). Print two or three at once a few centimetres apart so each stem gets cooling time between layers. If the thin disc warps, print with a draft shield or at lower temperature.
 - TPU is hygroscopic: dry the filament before printing thin parts, otherwise the flap and umbrella will be porous.
 
@@ -168,13 +169,13 @@ PETG is the first choice (tough, dishwasher-safe at low temperature, less static
 | Round cushion mask, 5 kg | 46 x 46 x 38 | 14.7 cm3 | 18 g TPU |
 | Round cushion mask, 6 kg | 48 x 48 x 39 | 15.6 cm3 | 19 g TPU |
 | Chamber body | 40 x 40 x 110 | 27.6 cm3 | 35 g PETG |
-| Chamber cap | 48 x 48 x 41 | 20.4 cm3 | 26 g PETG |
+| Chamber cap | 49 x 49 x 41 | 21.0 cm3 | 27 g PETG |
 | Valve insert | 32 x 32 x 1.6 | 1.0 cm3 | 1 g |
-| Inhalation flap | 30 x 20 x 0.6 | 0.2 cm3 | under 1 g TPU |
+| Inhalation flap | 21 x 20 x 6.6 | 0.2 cm3 | under 1 g TPU |
 | Exhalation umbrella | 10 x 10 x 4.3 | 0.05 cm3 | under 1 g TPU |
 | One-piece spacer | 40 x 40 x 136 | 31.0 cm3 | 39 g PETG |
 
-Assembled chamber: 141 mm long, 48 mm at the lid. With a mask on the nozzle add about 34 mm.
+Assembled chamber: 141 mm long, 49 mm at the lid. With a mask on the nozzle add about 34 mm.
 
 ---
 
@@ -196,8 +197,8 @@ Assembled chamber: 141 mm long, 48 mm at the lid. With a mask on the nozzle add 
 ![Valve assembly](docs/img/valve_assembly.png)
 
 1. Hold the **insert** so that the face that will point to the nozzle is up. The insert is symmetric, either face works.
-2. Push the **flap's bulb** down through the **slot** at the edge of the opening (bulb first). The bulb is wider than the slot and squeezes through, then holds underneath.
-3. Pull the tab until the flap disc lies flat on the insert, covering the opening with about 2 mm overlap all round.
+2. Push the **flap's tab**, pointed barb first, down through the **slot** at the edge of the opening. Grip the point from below and pull until the barb pops through. The barb is wider than the slot and squeezes through, then holds underneath.
+3. The disc now lies flat on the insert, covering the opening with about 2 mm overlap all round, and the lip under the tab covers the slot. The face that was on the print bed faces the nozzle.
 4. Test: blow gently through the grille from below, the flap should lift. Blow from above, it should seal on the grille.
 
 ### 5.2 Valve insert into the cap
@@ -224,12 +225,12 @@ Assembled chamber: 141 mm long, 48 mm at the lid. With a mask on the nozzle add 
 ![Section through the assembled chamber](docs/img/chamber_section_labeled.png)
 
 1. Push the cap **skirt** into the open end of the body until the lid's flare sits on the rim of the body.
-2. It should be a firm push fit (0.15 mm radial clearance). If it is loose, print the cap with `skirt_clearance = 0` or add a turn of PTFE tape to the skirt. Do not glue it, you need to open it for cleaning.
+2. Six crush ribs on the skirt reach 0.25 mm into the body wall and flatten a little the first time the skirt goes in, so the cap holds firmly whatever your printer's tolerance. The first push is the hardest. If the cap is still loose, raise `skirt_rib_interference` by 0.1 and reprint the cap; if it will not go in, lower it by 0.1. A turn of PTFE tape on the skirt is a quick fix. Do not glue it, you need to open it for cleaning.
 
 ### 5.5 Inhaler and mask
 
 1. Push the **inhaler mouthpiece** into the socket at the bottom of the body. It wedges after about 10 mm.
-2. Push the **mask** onto the **nozzle** on top of the cap, all the way down.
+2. Push the **mask** firmly onto the **nozzle** on top of the cap. The nozzle is 0.4 mm larger than the inhaler mouthpiece (`nozzle_oversize`), so it stretches the TPU socket and grips; the mask may stop a millimetre or so short of the lid.
 3. Without a chamber: push the inhaler straight into the mask socket instead.
 
 ### 5.6 Function check before first use
@@ -272,9 +273,10 @@ Do not boil, dishwash on hot, or leave in a sunny car: TPU and PLA deform.
 |---|---|
 | Inhaler will not go into the socket | TPU shrinks a little. Set `socket_clearance = 0.3` in the mask / chamber file and reprint, or enlarge `mouth_w` / `mouth_h` after measuring. |
 | Inhaler falls out | Set `socket_clearance = -0.2` or raise `socket_taper` to 5. |
-| Chamber nozzle loose in the mask | Set `nozzle_oversize = 0.3` in `holding_chamber.scad`. |
+| Chamber nozzle loose in the mask | Raise `nozzle_oversize` (default 0.4) to 0.6 or 0.8 in `holding_chamber.scad` and reprint the cap. If the mask is too hard to push on, lower it. |
+| Cap falls out of the body | Raise `skirt_rib_interference` (default 0.25) by 0.1 and reprint the cap. If the cap is too hard to push in, lower it by 0.1. |
 | Mask too big / too small | Try the next size folder. Between sizes, change `cat_weight_kg`, or set `rim_length` / `rim_width` (cat face) or `rim_d` (round) in mm. Print the paper template first. |
-| Flap sticks or does not close | Make sure it lies flat; trim the bulb if it pulls the disc up. A flap printed with wet filament curls: dry the TPU. |
+| Flap sticks or does not close | Make sure it lies flat. Its tab must be printed standing up, as in the STL: a tab printed flat (older versions of this file) springs back and lifts the disc. A flap printed with wet filament curls: dry the TPU. |
 | Umbrella leaks on inhalation | The disc must be flat on the pocket floor. Reprint at 0.4 mm with 100 % infill; check the pocket floor for strings. |
 | Cat resists exhaling | Check the umbrella moves freely. Never block the pocket. |
 | Visible aerosol escaping around the rim | Normal in small amounts. Check the cat face mask orientation; try the round mask. |
@@ -296,6 +298,7 @@ Parameters you will most likely touch:
 | masks | `cup_wall`, `lip_d` / `lip_r` | wall and rim softness |
 | cat face mask | `part = "template"` | 2D rim template for paper |
 | chamber | `chamber_d`, `chamber_len` | chamber volume (echoed in the console) |
+| chamber | `skirt_rib_interference`, `nozzle_oversize` | grip of the cap in the body and of the nozzle in the mask |
 | chamber | `valve`, `exhale_valve`, `one_piece` | valved holding chamber or plain spacer |
 | chamber | `part` | `all`, `body`, `cap`, `insert`, `flap`, `umbrella`, `assembly`, `exploded` |
 | all three | `show_section` | cut the model in half to inspect it |
@@ -352,7 +355,7 @@ python -m http.server 8765 --directory _site
 
 - **Cat face mask.** The rim outline, the 16 degree rim tilt, the non-planar rim wave and the bowl flare were measured from the original mesh and are reproduced as tables, so the shape scales without losing its character. The mask is one closed polyhedron and renders instantly.
 - **Round cushion mask.** A revolved profile. The rolled lip is a 260 degree curl of the wall plus a strut back to the inner wall, which closes the hollow so the lip stays soft but printable.
-- **Holding chamber.** About 105 ml internal volume by default, which a 3.3 kg cat empties in a few breaths. The inhalation valve is a 20 mm TPU flap on a cross grille. The exhalation valve is a 10 mm TPU umbrella recessed in a 3 mm lid plate above the ceiling cone, over six 1.8 mm holes (15 mm2) angled down into the space between the flap and the nozzle, so exhaled air never re-enters the chamber and the cat does not re-breathe it. The vestibule and mask hold roughly 30 ml of dead space, which is why the exhalation valve matters for a small cat.
+- **Holding chamber.** About 105 ml internal volume by default, which a 3.3 kg cat empties in a few breaths. The inhalation valve is a 20 mm TPU flap on a cross grille; its hinge tab is printed already bent at 90 degrees, because a printed TPU tab keeps the shape it was printed in. The exhalation valve is a 10 mm TPU umbrella recessed in a 3 mm lid plate above the ceiling cone, over six 1.8 mm holes (15 mm2) angled down into the space between the flap and the nozzle, so exhaled air never re-enters the chamber and the cat does not re-breathe it. The vestibule and mask hold roughly 30 ml of dead space, which is why the exhalation valve matters for a small cat.
 - **Materials.** Non-antistatic plastic attracts aerosol; the dish-soap wash is the standard spacer trick for that. Printed valves are stiffer than silicone ones, so thin is good: 0.6 mm for the flap, 0.4 mm for the umbrella.
 
 ![Assembled, cut in half](docs/img/chamber_assembly_section.png)

@@ -86,7 +86,7 @@ PNG_OPTS = ["--viewall", "--autocenter", "--projection=p", "--colorscheme=Tomorr
 # holding_chamber.scad variables the diagrams are dimensioned from
 CHAMBER_VARS = [
     "mouth_w", "mouth_h", "mouth_corner_r", "socket_taper", "socket_taper_depth", "socket_depth", "chamber_d", "chamber_len",
-    "wall", "nozzle_len", "valve_d", "grille_w", "insert_t", "flap_t", "flap_overlap", "tab_w",
+    "wall", "nozzle_len", "valve_d", "grille_w", "insert_t", "flap_t", "flap_overlap", "tab_w", "tab_t", "barb", "barb_z", "tab_len",
     "insert_clearance", "umbrella_d", "umbrella_t", "exhale_holes", "exhale_hole_d", "pocket_depth",
     "ma", "mb", "Ri", "z_sock", "z_cone", "z_top", "na", "nb", "nt", "skirt_h", "skirt_od", "bore_d",
     "z_c", "z_n", "z_lid", "cap_h", "flap_d", "hinge_r", "slot_w", "slot_t", "pocket_d", "r_ex", "seat_z",
@@ -361,7 +361,8 @@ def build_diagrams(openscad, workers):
         return failures
     print("  labelled diagrams (matplotlib)")
     stls = {"body": common_stl("holding_chamber_body"), "cap": common_stl("holding_chamber_cap"),
-            "insert": common_stl("holding_chamber_valve_insert"), "umbrella": common_stl("holding_chamber_umbrella"),
+            "insert": common_stl("holding_chamber_valve_insert"), "flap": common_stl("holding_chamber_valve_flap"),
+            "umbrella": common_stl("holding_chamber_umbrella"),
             "cat_face": mask_stl("cat_face_inhaler_mask", DOCS_SIZE),
             "round": mask_stl("round_cushion_inhaler_mask", DOCS_SIZE)}
     for out in diagrams.build(stls, IMG, p, colors={"tpu": TPU_COLOR, "rigid": RIGID_COLOR}):

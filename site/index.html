@@ -256,7 +256,7 @@ Dziękuję!</pre>
       <li>
         <div>
           <h3>Załóż klapkę na wkładkę</h3>
-          <p>Połóż wkładkę płasko. Przeciśnij kulkę na końcu klapki przez szczelinę przy brzegu otworu. Kulka jest szersza od szczeliny, więc trzeba ją przecisnąć, a potem sama trzyma się od spodu.</p>
+          <p>Połóż wkładkę płasko. Klapka ma przy brzegu sterczący języczek z grotem na końcu. Wsuń go grotem w dół w szczelinę przy brzegu otworu, chwyć od spodu i przeciągnij, aż grot przejdzie na drugą stronę. Grot jest szerszy od szczeliny, więc trzeba go przecisnąć, a potem sam trzyma się od spodu.</p>
           <p>Klapka ma leżeć płasko i zakrywać cały otwór. Sprawdź: dmuchnij od strony kratki, a klapka się uniesie. Dmuchnij z drugiej strony, a przylgnie do kratki.</p>
         </div>
         <figure class="diagram"><a href="img/pl/valve_assembly.png"><img src="img/pl/valve_assembly.png" alt="Wkładka zaworu, klapka i złożony zawór widziany z boku"></a><figcaption>Kliknij, żeby powiększyć.</figcaption></figure>
@@ -280,7 +280,7 @@ Dziękuję!</pre>
       <li>
         <div>
           <h3>Wciśnij pokrywkę w korpus</h3>
-          <p>Wciśnij pokrywkę w otwarty koniec korpusu aż do oporu. Ma trzymać mocno, ale dać się zdjąć do mycia, więc jej nie klej.</p>
+          <p>Wciśnij pokrywkę w otwarty koniec korpusu aż do oporu. Na kołnierzu pokrywki są cienkie żeberka, które przy pierwszym wciśnięciu lekko się zgniatają, więc za pierwszym razem trzeba użyć trochę siły. Pokrywka ma trzymać mocno, ale dać się zdjąć do mycia, więc jej nie klej.</p>
         </div>
         <figure class="render"><img src="img/chamber_exploded.png" width="1400" height="1050" alt="Części komory rozsunięte: korpus, wkładka, klapka, pokrywka i parasolka"></figure>
       </li>
@@ -288,7 +288,7 @@ Dziękuję!</pre>
         <div>
           <h3>Sprawdź działanie</h3>
           <p>Bez maski i bez inhalatora weź do ust króciec i oddychaj przez komorę. Przy wdechu powietrze płynie swobodnie. Przy wydechu wychodzi przez parasolkę na górze. Opór ma być bardzo mały. Potem umyj komorę.</p>
-          <p>Na koniec wciśnij ustnik inhalatora w gniazdo na dole komory (wchodzi na ok. 1 cm i się klinuje), a maskę nasuń do końca na króciec na górze.</p>
+          <p>Na koniec wciśnij ustnik inhalatora w gniazdo na dole komory (wchodzi na ok. 1 cm i się klinuje), a maskę nasuń mocno na króciec na górze. Króciec jest odrobinę większy od ustnika inhalatora, żeby maska dobrze się na nim trzymała.</p>
         </div>
         <figure class="render"><img src="img/chamber_assembly.png" width="1400" height="1050" alt="Złożona komora"></figure>
       </li>
@@ -345,6 +345,10 @@ Dziękuję!</pre>
     <details>
       <summary>Inhalator nie wchodzi w gniazdo albo z niego wypada</summary>
       <p>Gniazdo jest lekko stożkowe: ustnik wchodzi na około centymetr i się klinuje. Wciśnij go mocniej, lekko obracając. Jeśli mimo to nie pasuje, gniazdo trzeba poszerzyć albo zwęzić w plikach źródłowych. To kilka minut pracy dla kogoś, kto zna darmowy program OpenSCAD (opis po angielsku jest w <a href="@@REPO@@/blob/main/MANUAL.md#8-troubleshooting">instrukcji technicznej</a>). Możesz też <a href="@@REPO@@/issues">opisać problem na GitHubie</a>.</p>
+    </details>
+    <details>
+      <summary>Pokrywka wypada z korpusu albo maska zsuwa się z króćca</summary>
+      <p>Pokrywkę trzymają w korpusie żeberka na jej kołnierzu, a maskę to, że króciec jest odrobinę większy od ustnika. Oba dopasowania da się zacisnąć w plikach źródłowych (parametry <code>skirt_rib_interference</code> i <code>nozzle_oversize</code>, opis po angielsku w <a href="@@REPO@@/blob/main/MANUAL.md#8-troubleshooting">instrukcji technicznej</a>). Wtedy drukujesz na nowo tylko pokrywkę. Na szybko pomoże jedna warstwa taśmy teflonowej na kołnierzu pokrywki.</p>
     </details>
     <details id="inny-inhalator">
       <summary>Mój inhalator ma inny ustnik</summary>

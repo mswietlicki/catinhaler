@@ -39,7 +39,7 @@ Print and test in this order, so a wrong size shows up before you have printed e
 | 1 | `stl/<size>/cat_face_rim_template_<size>.svg` on paper at 100 % | paper | The 50 mm bar measures 50 mm; the outline covers nose and mouth and stays below the eyes. Otherwise try the next size. |
 | 2 | `stl/<size>/cat_face_inhaler_mask_<size>.stl` or `stl/<size>/round_cushion_inhaler_mask_<size>.stl` | TPU | The inhaler wedges firmly into the socket. Mask plus inhaler already works without a chamber. |
 | 3 | `stl/common/holding_chamber_body.stl`, `holding_chamber_cap.stl`, `holding_chamber_valve_insert.stl` (one plate) | PETG | The inhaler wedges into the body, the cap pushes into the body, the cap nozzle plugs into the mask. |
-| 4 | `stl/common/holding_chamber_valve_flap.stl`, `holding_chamber_umbrella.stl` (2 or 3 of each) | TPU | Flap and umbrella lie flat with no holes. Then assemble ([manual, section 5](MANUAL.md#5-assembly)). |
+| 4 | `stl/common/holding_chamber_valve_flap.stl`, `holding_chamber_umbrella.stl` (2 or 3 of each) | TPU | No holes in the flap and umbrella discs; the flap's tab stands up at the edge. Then assemble ([manual, section 5](MANUAL.md#5-assembly)). |
 
 Measure your inhaler's mouthpiece before step 2. If it is not 25.4 x 19.6 mm, set `mouth_w`, `mouth_h` and `mouth_corner_r` in all three `.scad` files and regenerate. To skip the valves, print `stl/common/holding_chamber_one_piece_spacer.stl` in PETG instead of steps 3 and 4.
 
@@ -48,7 +48,7 @@ Measure your inhaler's mouthpiece before step 2. If it is not 25.4 x 19.6 mm, se
 | Material | Parts | Amount |
 |---|---|---|
 | TPU 95A | masks, inhalation flap, exhalation umbrella | 15 to 19 g per mask (3.3 to 6 kg), under 1 g per valve part |
-| PETG (PLA works, but do not wash it hot) | chamber body, cap, valve insert, or the one-piece spacer | about 62 g for body + cap + insert |
+| PETG (PLA works, but do not wash it hot) | chamber body, cap, valve insert, or the one-piece spacer | about 63 g for body + cap + insert |
 
 Dry the TPU before printing the thin valve parts.
 
