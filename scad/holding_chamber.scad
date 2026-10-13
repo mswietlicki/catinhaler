@@ -26,15 +26,17 @@
 //    body      - socket + chamber tube, print socket down, no supports
 //    cap       - skirt + lid + nozzle, print skirt down, no supports
 //    insert    - inhalation valve seat disc with grille and hinge slot, flat
-//    flap      - inhalation flap, print flat in TPU (0.6 mm = 3 layers)
+//    flap      - inhalation flap in TPU, print disc down (0.6 mm = 3 layers)
+//                with the hinge tab standing up at 90 deg
 //    umbrella  - exhalation umbrella, print disc down, stem up, in TPU
-//  ASSEMBLY: push the flap's tab through the slot of the insert (bulb
-//    end first, from the grille side, so the disc lies on the side of the
-//    insert that faces the nozzle).  Drop the insert into the cap skirt,
-//    flap towards the nozzle, and push it up to the stop.  Push the
-//    umbrella stem into the small hole in the pocket on top of the cap
-//    until the bulb clicks into the pocket under the seat.  Push the cap
-//    skirt into the body.
+//  ASSEMBLY: push the flap's tab, barb first, down through the slot of the
+//    insert and pull it from below until the barb pops through and the
+//    disc lies flat on the insert (that face goes towards the nozzle).
+//    Drop the insert into the cap skirt, flap towards the nozzle, and push
+//    it up to the stop.  Push the umbrella stem into the small hole in the
+//    pocket on top of the cap until the bulb clicks into the pocket under
+//    the seat.  Push the cap skirt into the body: the crush ribs on the
+//    skirt hold it.
 //
 //  MATERIAL: body, cap and insert are best in a rigid filament (PETG/PLA)
 //    so the chamber keeps its shape; TPU works too with wall = 2 mm but
@@ -80,8 +82,8 @@ nozzle_len = 15;
 nozzle_taper = 4;
 // Wall thickness of the nozzle (1.6 = 4 x 0.4 mm)
 nozzle_wall = 1.6;
-// Make the nozzle bigger (+) or smaller (-) than the mouthpiece size; +0.3 if it sits loose in a TPU mask
-nozzle_oversize = 0;
+// Make the nozzle bigger (+) or smaller (-) than the mouthpiece size, so it stretches the TPU mask socket and grips (0 = exactly the mouthpiece)
+nozzle_oversize = 0.4;
 // Length of the cone between the chamber diameter and the nozzle (longer = gentler internal overhang)
 head_cone_len = 10;
 
@@ -99,6 +101,8 @@ flap_t = 0.6;
 flap_overlap = 2;
 // Width of the flap hinge tab
 tab_w = 6;
+// Thickness of the flap hinge tab, printed standing up at the disc edge (0.8 = 2 lines of 0.4 mm)
+tab_t = 0.8;
 // Diametral fit of the insert in the cap bore: positive = looser, negative = press fit
 insert_clearance = -0.1;
 
@@ -113,7 +117,7 @@ exhale_holes = 6;
 // Diameter of the exhalation holes
 exhale_hole_d = 1.8;
 // Lid diameter of the cap when the exhalation valve is fitted (needs room beside the nozzle)
-head_d = 48;
+head_d = 49;
 // Thickness of the lid plate above the ceiling cone that carries the valve seat
 lid_t = 3;
 // Depth of the recess that holds the umbrella
@@ -124,6 +128,10 @@ pocket_depth = 4;
 skirt_len = 10;
 // Radial clearance between skirt and body (TPU 0, PETG/PLA 0.15-0.2)
 skirt_clearance = 0.15;
+// Number of crush ribs on the skirt that grip the body (0 = plain skirt)
+skirt_ribs = 6;
+// How far the ribs reach into the body wall, radially: +0.1 if the cap is still loose, -0.1 if it is too hard to push in
+skirt_rib_interference = 0.25;
 
 /* [Output] */
 part = "all"; // [all, body, cap, insert, flap, umbrella, assembly, exploded]
@@ -158,6 +166,9 @@ skirt_h  = fused ? 0 : skirt_len;
 skirt_od = fused ? chamber_d : 2 * Ri - 2 * skirt_clearance;
 bore_d   = fused ? 2 * Ri : skirt_od - 2 * wall;
 flare_h  = fused ? 0 : (chamber_d - skirt_od) / 2;          // 45 deg flare from skirt to full diameter
+rib_r    = 0.8;                                              // crush ribs: rounded, narrow enough to deform instead of the body
+rib_reach = Ri + skirt_rib_interference;                     // radius the rib crests reach
+rib_lead = 2;                                                // the ribs ramp up over the first 2 mm of the skirt
 seat_len = valve ? insert_t + flap_t + 1 : 1;               // room for insert + flap below the ceiling
 z_c = skirt_h + max(flare_h, seat_len);                      // start of the head cone (ceiling)
 z_n = z_c + head_cone_len;                                   // top of the ceiling cone (nozzle channel starts)
@@ -166,9 +177,12 @@ z_lid = z_n + (ex_on ? lid_t : 0);                           // top of the lid =
 cap_h = z_lid + nozzle_len;
 
 flap_d = valve_d + 2 * flap_overlap;
-hinge_r = flap_d / 2;                  // hinge slot sits at the flap's edge
+hinge_r = flap_d / 2;                  // hinge slot (and the flap's tab) sit at the flap's edge
 slot_w = tab_w + 0.4;
-slot_t = flap_t + 0.4;
+slot_t = tab_t + 0.4;
+barb = 0.8;                            // the barb at the end of the tab is this much wider than the tab on each side
+barb_z = flap_t + insert_t + 0.2;      // tab length from the bed to the barb: through the insert plus 0.2 mm play
+tab_len = barb_z + barb + 0.4 + 3;     // 45 deg barb shoulder, 0.4 mm flat, 3 mm lead-in point
 
 // exhalation valve geometry (on the +X side of the lid, where the nozzle is narrowest)
 pocket_d = umbrella_d + 2;                       // recess that holds the umbrella
@@ -247,6 +261,7 @@ module cap() {
         union() {
             if (!fused) {
                 cylinder(d = skirt_od, h = skirt_h + 0.01);
+                if (skirt_ribs > 0) skirt_crush_ribs();
                 translate([0, 0, skirt_h]) cylinder(d1 = skirt_od, d2 = chamber_d, h = flare_h);
             }
             translate([0, 0, skirt_h + flare_h - 0.01]) cylinder(d = chamber_d, h = z_c - skirt_h - flare_h + 0.02);
@@ -268,6 +283,18 @@ module cap() {
     }
 }
 
+// vertical ribs on the skirt, ramped at the tip; offset half a step so none lies in the show_section plane
+module skirt_crush_ribs() {
+    intersection() {
+        for (i = [0 : skirt_ribs - 1]) rotate(360 * (i + 0.5) / skirt_ribs)
+            translate([rib_reach - rib_r, 0, 0]) cylinder(r = rib_r, h = skirt_h, $fn = 24);
+        union() {
+            cylinder(r1 = skirt_od / 2, r2 = rib_reach, h = rib_lead);
+            translate([0, 0, rib_lead - 0.01]) cylinder(r = rib_reach + 1, h = skirt_h);
+        }
+    }
+}
+
 // pocket, stem hole with bulb pocket, and angled exhalation holes for the umbrella valve
 module exhale_valve_cuts() {
     translate([r_ex, 0, seat_z]) cylinder(d = pocket_d, h = pocket_depth + 1);                        // recess, open to the top
@@ -285,7 +312,7 @@ module umbrella() {
     translate([0, 0, umbrella_t + stem_len - 0.01]) cylinder(d1 = bulb_d, d2 = stem_d - 0.6, h = 1.6);
 }
 
-// ---------------------------------------------------------------- valve insert (print flat) and flap (print flat, TPU)
+// ---------------------------------------------------------------- valve insert (print flat) and flap (TPU, disc down)
 module valve_insert() {
     difference() {
         cylinder(d = bore_d - insert_clearance, h = insert_t);
@@ -302,14 +329,22 @@ module valve_insert() {
         }
     }
 }
+// The hinge tab stands up at the disc edge, already bent 90 deg, so the disc lies flat once the tab is
+// through the slot; a tab printed flat springs back and lifts the disc.  The face on the bed is the top
+// face in the cap (towards the nozzle).
 module valve_flap() {
-    neck_l = insert_t + 1.2;            // long enough to pass through the insert
-    bulb_d = tab_w + 1.6;               // wider than the slot: squeezes through, then holds
+    hw = tab_w / 2;
+    bw = hw + barb;                     // wider than the slot: squeezes through, then holds
+    tip = 1.2;
     linear_extrude(flap_t) {
         circle(d = flap_d);
-        translate([flap_d / 2 - 0.5, -tab_w / 2]) square([neck_l + 0.5, tab_w]);
-        translate([flap_d / 2 + neck_l + bulb_d / 2 - 0.3, 0]) circle(d = bulb_d);
+        // lip that carries the tab and covers the slot when the flap is closed
+        translate([hinge_r - 2, -(slot_w / 2 + 0.6)]) square([2 + slot_t / 2 + 0.6, slot_w + 1.2]);
     }
+    // tab in the YZ plane, centred on the slot; every overhang of the barb is 45 deg or less
+    translate([hinge_r - tab_t / 2, 0, 0]) rotate([90, 0, 90]) linear_extrude(tab_t)
+        polygon([[-hw, 0], [hw, 0], [hw, barb_z], [bw, barb_z + barb], [bw, barb_z + barb + 0.4], [tip, tab_len],
+                 [-tip, tab_len], [-bw, barb_z + barb + 0.4], [-bw, barb_z + barb], [-hw, barb_z]]);
 }
 
 // ---------------------------------------------------------------- assembly / layout
@@ -318,9 +353,9 @@ module assembly() {
     translate([0, 0, z_top - skirt_h]) {
         cap();
         if (valve) {
-            // insert pushed up to the ceiling stop, flap lying on it (shown closed; tab not drawn)
+            // insert pushed up to the ceiling stop, flap lying on it (shown closed, tab down through the slot)
             translate([0, 0, z_c - insert_t]) color("silver") valve_insert();
-            translate([0, 0, z_c]) color(TPU_COLOR) linear_extrude(flap_t) circle(d = flap_d);
+            translate([0, 0, z_c + flap_t]) mirror([0, 0, 1]) color(TPU_COLOR) valve_flap();
         }
         if (ex_on) translate([r_ex, 0, seat_z + umbrella_t]) mirror([0, 0, 1]) color(TPU_COLOR) umbrella();
     }
@@ -330,8 +365,8 @@ module exploded() {
     body();
     translate([0, 0, z_top - skirt_h]) {
         if (valve) {
-            translate([0, 0, z_c - insert_t + 22]) color("silver") valve_insert();
-            translate([0, 0, z_c + 34]) color(TPU_COLOR) valve_flap();
+            translate([0, 0, z_c - insert_t + 18]) color("silver") valve_insert();
+            translate([0, 0, z_c + flap_t + 31]) mirror([0, 0, 1]) color(TPU_COLOR) valve_flap();
         }
         translate([0, 0, valve ? 50 : 25]) cap();
         if (ex_on) translate([r_ex, 0, (valve ? 50 : 25) + seat_z + umbrella_t + 18]) mirror([0, 0, 1]) color(TPU_COLOR) umbrella();
@@ -381,7 +416,7 @@ v_sock = socket_depth * (A_rr(ma, mb, mouth_corner_r) + A_in1) / 2;
 echo(str("chamber internal volume ~ ", round(v_main / 100) / 10, " ml (tube + cones + cap), plus ~", round(v_sock / 100) / 10, " ml inside the inhaler socket"));
 echo(str("body height ", z_top, " mm, cap height ", cap_h, " mm, assembled length ", z_top - skirt_h + cap_h, " mm, outer diameter ", chamber_d, " mm"));
 echo(str("nozzle: base ", 2 * na, " x ", 2 * nb, " mm -> tip ", 2 * (na - nt), " x ", 2 * (nb - nt), " mm over ", nozzle_len, " mm; inhaler socket ", 2 * ma, " x ", 2 * mb, " -> ", 2 * (ma - sh), " x ", 2 * (mb - sh), " mm"));
-if (valve) echo(str("valve: opening ", valve_d, " mm, flap ", flap_d, " x ", flap_t, " mm, insert ", bore_d - insert_clearance, " mm dia in a ", bore_d, " mm bore; ceiling clearance above the flap edge ~", round(10 * (bore_d / 2 - hinge_r) / (bore_d / 2 - min(na, nb) + nozzle_wall) * head_cone_len) / 10, " mm"));
+if (valve) echo(str("valve: opening ", valve_d, " mm, flap ", flap_d, " x ", flap_t, " mm with a ", tab_w, " x ", tab_t, " x ", tab_len, " mm standing tab, insert ", bore_d - insert_clearance, " mm dia in a ", bore_d, " mm bore; ceiling clearance above the flap edge ~", round(10 * (bore_d / 2 - hinge_r) / (bore_d / 2 - min(na, nb) + nozzle_wall) * head_cone_len) / 10, " mm"));
 if (ex_on) echo(str("exhalation valve: umbrella ", umbrella_d, " x ", umbrella_t, " mm, ", exhale_holes, " holes of ", exhale_hole_d, " mm (", round(exhale_holes * PI * pow(exhale_hole_d / 2, 2) * 10) / 10, " mm2), lid ", lid_d, " mm"));
 
 if (show_section) difference() { selected(); translate([-150, 0, -1]) cube(300); }

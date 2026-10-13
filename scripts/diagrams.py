@@ -28,7 +28,7 @@ TEXT = {"pl": {
         "gniazdo: tu wciskasz ustnik inhalatora\n(zwęża się o {taper} mm na długości {depth} mm)",
     "inlet cone": "stożek wlotowy",
     "chamber body: {d} mm OD, {wall} mm wall": "korpus komory: średnica {d} mm, ścianka {wall} mm",
-    "cap skirt: push fit inside the body": "kołnierz pokrywki: wciskany w korpus",
+    "cap skirt: crush ribs grip the body": "kołnierz pokrywki: żeberka trzymają go w korpusie",
     "inhalation valve insert:\npress fit in the cap bore": "wkładka zaworu wdechowego:\nwciśnięta w pokrywkę",
     "flap (TPU {t} mm): lifts on inhalation,\nseals on the grille on exhalation":
         "klapka (TPU {t} mm): unosi się przy wdechu,\nprzy wydechu przylega do kratki",
@@ -43,14 +43,16 @@ TEXT = {"pl": {
     "1. valve insert from the nozzle side": "1. wkładka zaworu od strony króćca",
     "hinge slot": "szczelina",
     "grille: the closed flap rests on it": "kratka: opiera się na niej zamknięta klapka",
-    "2. flap, printed flat in TPU ({t} mm)": "2. klapka, drukowana płasko z TPU ({t} mm)",
-    "covers the opening (dashed)\nwith {o} mm overlap": "zakrywa otwór\n(linia przerywana)\nz zakładką {o} mm",
-    "tab goes through the slot": "języczek przechodzi przez szczelinę",
-    "bulb: squeezes through,\nthen locks underneath": "kulka: przeciśnij\nprzez szczelinę, zablokuje\nsię pod spodem",
+    "2. flap as printed (TPU): disc on the bed, tab up": "2. klapka do druku (TPU): krążek na stole, języczek do góry",
+    "side view": "z boku",
+    "tab seen face on": "języczek od przodu",
+    "disc ({t} mm) lies on the bed": "krążek ({t} mm) leży na stole",
+    "tab printed standing\nup (90 deg), so the\ndisc stays flat": "języczek drukowany\npionowo (90°), więc\nkrążek leży płasko",
+    "barb: squeezes through\nthe slot, then locks\nunderneath": "grot: przeciśnij go\nprzez szczelinę,\nzablokuje się pod spodem",
     "3. assembled valve, side view (thickness exaggerated)": "3. złożony zawór z boku (grubość powiększona)",
-    "flap lies flat on the insert": "klapka leży płasko\nna wkładce",
+    "flap lies flat on the insert,\n{o} mm over the edge of the opening": "klapka leży płasko na wkładce,\nzachodzi {o} mm za brzeg otworu",
     "opens this way\non inhalation": "otwiera się\nprzy wdechu",
-    "tab bent 90 deg through the slot;\nthe bulb holds it from below": "języczek zgięty w szczelinie,\nkulka trzyma go od spodu",
+    "tab straight down through the slot;\nthe barb holds it from below": "języczek prosto w dół przez szczelinę,\ngrot trzyma go od spodu",
     "chamber side (grille face)": "strona komory (kratka)",
     "nozzle / mask side": "strona króćca i maski",
     # mask orientation
@@ -171,12 +173,9 @@ def chamber_section(m, p, c, out, lang="en"):
     fill(ax, xz_section(moved(m["cap"], dz=cap_z)), c["cap"])
     fill(ax, xz_section(moved(m["insert"], dz=insert_z)), c["insert"])
     fill(ax, xz_section(umb), c["tpu"])
-    # flap lying closed on the insert, its tab bent down through the hinge slot, bulb underneath
-    fd, ft = p["flap_d"], p["flap_t"]
-    ax.add_patch(Rectangle((-fd / 2, flap_z), fd, ft, color=c["tpu"]))
-    neck = p["insert_t"] + 1.2
-    ax.add_patch(Rectangle((p["hinge_r"] - ft / 2, flap_z - neck), ft, neck, color=c["tpu"]))
-    ax.add_patch(Ellipse((p["hinge_r"], flap_z - neck), 2.2, 1.2, color=c["tpu"]))
+    # flap lying closed on the insert (turned over from its print orientation), its tab down through the hinge slot
+    ft = p["flap_t"]
+    fill(ax, xz_section(moved(m["flap"], dz=flap_z + ft, flip=True)), c["tpu"])
 
     ax.annotate("", xy=(0, cap_z - 4), xytext=(0, p["z_cone"] + 8), arrowprops=dict(arrowstyle="-|>", lw=2.2, color="0.35"))
     ax.text(1.5, (cap_z + p["z_cone"]) / 2, T(lang, "aerosol flow"), fontsize=FONT, color="0.35", rotation=90, va="center")
@@ -191,7 +190,7 @@ def chamber_section(m, p, c, out, lang="en"):
         (T(lang, "inlet cone"), (x_mid_cone, z_mid_cone), z_mid_cone),
         (T(lang, "chamber body: {d} mm OD, {wall} mm wall", d=f"{p['chamber_d']:g}", wall=f"{wall:g}"),
          (p["chamber_d"] / 2 - wall / 2, p["z_cone"] + p["chamber_len"] / 2), p["z_cone"] + p["chamber_len"] / 2),
-        (T(lang, "cap skirt: push fit inside the body"), ((p["skirt_od"] + p["bore_d"]) / 4, cap_z + p["skirt_h"] / 2), cap_z),
+        (T(lang, "cap skirt: crush ribs grip the body"), ((p["skirt_od"] + p["bore_d"]) / 4, cap_z + p["skirt_h"] / 2), cap_z),
         (T(lang, "inhalation valve insert:\npress fit in the cap bore"), (p["bore_d"] / 2 - 2.5, insert_z + p["insert_t"] / 2),
          insert_z - 2),
         (T(lang, "flap (TPU {t} mm): lifts on inhalation,\nseals on the grille on exhalation", t=f"{ft:g}"),
@@ -261,9 +260,9 @@ def valve_assembly(p, c, out, lang="en"):
     d = p["bore_d"] - p["insert_clearance"]
     vd, gw, hr = p["valve_d"], p["grille_w"], p["hinge_r"]
     sw, st = p["slot_w"], p["slot_t"]
-    tw, ft, it, fd = p["tab_w"], p["flap_t"], p["insert_t"], p["flap_d"]
-    neck = it + 1.2
-    bulb = tw + 1.6
+    tw, tt, ft, it, fd = p["tab_w"], p["tab_t"], p["flap_t"], p["insert_t"], p["flap_d"]
+    bz, bw, tl = p["barb_z"], tw / 2 + p["barb"], p["tab_len"]
+    lip = hr + st / 2 + 0.6                    # the lip under the tab reaches this far past the disc
 
     ax = axes[0]
     ax.add_patch(Circle((0, 0), d / 2, color=c["insert"]))
@@ -278,41 +277,47 @@ def valve_assembly(p, c, out, lang="en"):
     ax.set_xlim(-d / 2 - 4, d / 2 + 6)
     ax.set_ylim(-d / 2 - 6, d / 2 + 6)
 
+    # print orientation, true scale: side view, and the tab seen face on (looking at the hinge edge) beside it
     ax = axes[1]
-    ax.add_patch(Circle((0, 0), fd / 2, color=c["tpu"]))
-    ax.add_patch(Rectangle((fd / 2 - 0.5, -tw / 2), neck + 0.5, tw, color=c["tpu"]))
-    ax.add_patch(Circle((fd / 2 + neck + bulb / 2 - 0.3, 0), bulb / 2, color=c["tpu"]))
-    ax.add_patch(Circle((0, 0), vd / 2, fill=False, ec="k", ls="--", lw=0.8))
-    ax.annotate(T(lang, "covers the opening (dashed)\nwith {o} mm overlap", o=f"{p['flap_overlap']:g}"), xy=(-vd / 2 * 0.7, -vd / 2 * 0.7),
-                xytext=(-fd / 2 - 2, -fd / 2 - 5), fontsize=FONT + 0.5, arrowprops=dict(arrowstyle="->"))
-    ax.annotate(T(lang, "tab goes through the slot"), xy=(fd / 2 + neck / 2, tw / 2), xytext=(fd / 2 - 6, fd / 2 + 3), fontsize=FONT + 0.5,
-                arrowprops=dict(arrowstyle="->"))
-    ax.annotate(T(lang, "bulb: squeezes through,\nthen locks underneath"), xy=(fd / 2 + neck + bulb / 2, -bulb / 2),
-                xytext=(fd / 2 + 1, -fd / 2 - 5), fontsize=FONT + 0.5, arrowprops=dict(arrowstyle="->"))
-    ax.set_title(T(lang, "2. flap, printed flat in TPU ({t} mm)", t=f"{ft:g}"))
-    ax.set_xlim(-fd / 2 - 4, fd / 2 + neck + bulb + 6)
-    ax.set_ylim(-fd / 2 - 8, fd / 2 + 6)
+    ox = lip + 4 + fd / 2                      # centre of the face-on view
+    ax.plot([-fd / 2 - 1, ox + fd / 2 + 1], [0, 0], color="0.55", lw=1.2)
+    ax.add_patch(Rectangle((-fd / 2, 0), fd / 2 + lip, ft, color=c["tpu"]))
+    ax.add_patch(Rectangle((hr - tt / 2, 0), tt, tl, color=c["tpu"]))
+    ax.add_patch(Rectangle((ox - fd / 2, 0), fd, ft, color=c["tpu"]))
+    profile = [(-tw / 2, 0), (tw / 2, 0), (tw / 2, bz), (bw, bz + p["barb"]), (bw, bz + p["barb"] + 0.4), (1.2, tl),
+               (-1.2, tl), (-bw, bz + p["barb"] + 0.4), (-bw, bz + p["barb"]), (-tw / 2, bz)]
+    ax.add_patch(Polygon([(ox + y, z) for y, z in profile], closed=True, color=c["tpu"]))
+    ax.text(0, -2, T(lang, "side view"), ha="center", va="top", fontsize=FONT, color="0.35")
+    ax.text(ox, -2, T(lang, "tab seen face on"), ha="center", va="top", fontsize=FONT, color="0.35")
+    ax.annotate(T(lang, "disc ({t} mm) lies on the bed", t=f"{ft:g}"), xy=(-fd / 2 + 2, ft / 2), xytext=(-fd / 2, -7),
+                fontsize=FONT + 0.5, arrowprops=dict(arrowstyle="->", relpos=(0.1, 1)))
+    ax.annotate(T(lang, "tab printed standing\nup (90 deg), so the\ndisc stays flat"), xy=(hr - tt / 2, tl * 0.6),
+                xytext=(-fd / 2 + 1, tl + 4), fontsize=FONT + 0.5, arrowprops=dict(arrowstyle="->"))
+    ax.annotate(T(lang, "barb: squeezes through\nthe slot, then locks\nunderneath"), xy=(ox + bw, bz + p["barb"] + 0.2),
+                xytext=(ox - 1, tl + 4), fontsize=FONT + 0.5, arrowprops=dict(arrowstyle="->"))
+    ax.set_title(T(lang, "2. flap as printed (TPU): disc on the bed, tab up"))
+    ax.set_xlim(-fd / 2 - 2, ox + fd / 2 + 2)
+    ax.set_ylim(-10, tl + 13)
 
     ax = axes[2]
     s = 1.6   # thickness exaggeration, so the thin parts are visible
     for x0, w in [(-d / 2, d / 2 - vd / 2), (vd / 2, d / 2 - vd / 2), (-gw / 2, gw)]:
         ax.add_patch(Rectangle((x0, 0), w, it * s, color=c["insert"]))
     ax.add_patch(Rectangle((hr - st / 2, 0), st, it * s, color="white"))
-    ax.add_patch(Rectangle((-fd / 2, it * s), fd, ft * s, color=c["tpu"]))
-    ax.add_patch(Rectangle((hr - ft * s / 2, -neck * s + it * s), ft * s, neck * s, color=c["tpu"]))
-    ax.add_patch(Ellipse((hr, -neck * s + it * s), bulb * 0.45, ft * s * 2.4, color=c["tpu"]))
-    ax.annotate(T(lang, "flap lies flat on the insert"), xy=(fd / 4, it * s + ft * s), xytext=(1.5, 7.5), fontsize=FONT + 0.5,
-                arrowprops=dict(arrowstyle="->"))
+    ax.add_patch(Rectangle((-fd / 2, it * s), fd / 2 + lip, ft * s, color=c["tpu"]))
+    ax.add_patch(Rectangle((hr - tt / 2, (it + ft - tl) * s), tt, tl * s, color=c["tpu"]))
+    ax.annotate(T(lang, "flap lies flat on the insert,\n{o} mm over the edge of the opening", o=f"{p['flap_overlap']:g}"),
+                xy=(fd / 4, it * s + ft * s), xytext=(-1, 8.6), fontsize=FONT + 0.5, arrowprops=dict(arrowstyle="->"))
     ax.annotate("", xy=(-fd / 2 + 1, it * s + 5), xytext=(-fd / 2 + 1, it * s + 1.2),
                 arrowprops=dict(arrowstyle="-|>", lw=1.5, color=shade(c["tpu"], 0.75)))
     ax.text(-fd / 2 + 2, it * s + 3.6, T(lang, "opens this way\non inhalation"), fontsize=FONT, color=shade(c["tpu"], 0.75), va="center")
-    ax.annotate(T(lang, "tab bent 90 deg through the slot;\nthe bulb holds it from below"), xy=(hr + 0.4, -neck * s + it * s),
-                xytext=(hr - 15, -7.5), fontsize=FONT + 0.5, arrowprops=dict(arrowstyle="->"))
+    ax.annotate(T(lang, "tab straight down through the slot;\nthe barb holds it from below"), xy=(hr - tt / 2, (it + ft - bz - p["barb"]) * s),
+                xytext=(hr - 24, -6.5), fontsize=FONT + 0.5, arrowprops=dict(arrowstyle="->"))
     ax.text(0, -10.5, T(lang, "chamber side (grille face)"), ha="center", fontsize=FONT + 0.5)
-    ax.text(0, 11.5, T(lang, "nozzle / mask side"), ha="center", fontsize=FONT + 0.5)
+    ax.text(0, 12.5, T(lang, "nozzle / mask side"), ha="center", fontsize=FONT + 0.5)
     ax.set_title(T(lang, "3. assembled valve, side view (thickness exaggerated)"))
     ax.set_xlim(-d / 2 - 2, d / 2 + 2)
-    ax.set_ylim(-12, 13)
+    ax.set_ylim(-12, 14)
 
     for ax in axes:
         ax.set_aspect("equal")
@@ -394,7 +399,7 @@ def mask_sections(m, c, out):
 
 
 def build(stls, img_dir, p, colors):
-    """stls: STL paths keyed body, cap, insert, umbrella, cat_face, round."""
+    """stls: STL paths keyed body, cap, insert, flap, umbrella, cat_face, round."""
     img_dir = Path(img_dir)
     c = {"tpu": colors["tpu"], "body": shade(colors["rigid"], 1.25), "cap": colors["rigid"],
          "insert": (0.62, 0.62, 0.66)}
