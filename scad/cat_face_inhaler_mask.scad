@@ -96,6 +96,8 @@ lip_d = 3.2;
 
 /* [Output] */
 part = "mask"; // [mask, template]
+// Language of the labels on the paper template
+template_lang = "en"; // [en, pl]
 // Cut the model in half to inspect the wall
 show_section = false;
 // Points around the circumference
@@ -106,6 +108,8 @@ cup_rings = 24; // [8:60]
 lip_rings = 10; // [4:24]
 
 /* [Hidden] */
+// preview colour of TPU parts (the STL has no colour)
+TPU_COLOR = "#e0a526";
 // Plan-view outer radius of the original rim, every 5 deg from 0 (shallow +X side) to 180 (deep -X side), mirrored.
 RIM_REF = [23.52, 23.57, 23.66, 23.81, 23.97, 24.11, 24.19, 24.19, 24.08, 23.89, 23.67, 23.39, 23.21,
            23.10, 23.08, 23.15, 23.33, 23.64, 24.01, 24.48, 24.95, 25.18, 24.94, 24.20, 23.39, 22.86,
@@ -230,10 +234,19 @@ module cat_face_mask() {
     polyhedron(points = mask_points, faces = mask_faces, convexity = 10);
 }
 
+// template labels: chin, nose, title with weight (before, after), title without weight, rim, scale bar
+TEMPLATE_TEXT = template_lang == "pl"
+    ? ["broda", "nos", "maska profilowana, kot ", " kg", "maska profilowana", "brzeg ", "50 mm: sprawdź linijką"]
+    : ["chin", "nose", "cat face mask, ", " kg cat", "cat face mask", "rim ", "50 mm: check with a ruler"];
+function join(v, i = 0) = i >= len(v) ? "" : str(v[i], join(v, i + 1));
+// number as text with the decimal separator of the template language
+function num(x) = template_lang == "pl" ? join([for (c = str(x)) c == "." ? "," : c]) : str(x);
+
 // 1:1 paper template: outer rim outline as a ring of the wall thickness, the stem outline for orientation,
 // labels for the deep (chin, -X) and shallow (nose, +X) sides and a 50 mm scale bar to check the print scale
 module rim_template() {
     font = "Liberation Sans";
+    L = TEMPLATE_TEXT;
     difference() {
         polygon([for (t = thetas) rim_r(t) * [cos(t), sin(t)]]);
         polygon([for (t = thetas) (rim_r(t) - cup_wall) * [cos(t), sin(t)]]);
@@ -242,29 +255,28 @@ module rim_template() {
         polygon([for (t = thetas) stem_out_r(t) * [cos(t), sin(t)]]);
         polygon([for (t = thetas) (stem_out_r(t) - 0.5) * [cos(t), sin(t)]]);
     }
-    translate([-rim_r(180) - 2, 0]) text("chin", size = 3, font = font, halign = "right", valign = "center");
-    translate([rim_r(0) + 2, 0]) text("nose", size = 3, font = font, halign = "left", valign = "center");
+    translate([-rim_r(180) - 2, 0]) text(L[0], size = 3, font = font, halign = "right", valign = "center");
+    translate([rim_r(0) + 2, 0]) text(L[1], size = 3, font = font, halign = "left", valign = "center");
     sized_by_weight = rim_length == 0 && rim_width == 0 && face_scale_override == 0;
     translate([0, rim_wid_out / 2 + 9])
-        text(sized_by_weight ? str("cat face mask, ", cat_weight_kg, " kg cat") : "cat face mask",
-             size = 3, font = font, halign = "center");
+        text(sized_by_weight ? str(L[2], num(cat_weight_kg), L[3]) : L[4], size = 3, font = font, halign = "center");
     translate([0, rim_wid_out / 2 + 4])
-        text(str("rim ", round(10 * rim_len_out) / 10, " x ", round(10 * rim_wid_out) / 10, " mm"),
+        text(str(L[5], num(round(10 * rim_len_out) / 10), " x ", num(round(10 * rim_wid_out) / 10), " mm"),
              size = 3, font = font, halign = "center");
     translate([0, -rim_wid_out / 2 - 7]) {
         square([50, 0.5], center = true);
         for (x = [-25, 25]) translate([x, 0]) square([0.5, 3], center = true);
-        translate([0, -6]) text("50 mm: check with a ruler", size = 3, font = font, halign = "center");
+        translate([0, -6]) text(L[6], size = 3, font = font, halign = "center");
     }
 }
 
 if (part == "template") {
     rim_template();
 } else if (show_section) {
-    difference() {
+    color(TPU_COLOR) difference() {
         cat_face_mask();
         translate([-150, 0, -1]) cube(300);
     }
 } else {
-    cat_face_mask();
+    color(TPU_COLOR) cat_face_mask();
 }

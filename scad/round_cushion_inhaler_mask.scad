@@ -92,6 +92,8 @@ cup_steps = 24;
 lip_steps = 24;
 
 /* [Hidden] */
+// preview colour of TPU parts (the STL has no colour)
+TPU_COLOR = "#e0a526";
 REF_RIM_D = 44.0;
 REF_CUP_H = 18.4;
 
@@ -192,10 +194,10 @@ if (lip_style == "rolled")
 if (part == "profile") {
     profile2d();
 } else if (show_section) {
-    difference() {
+    color(TPU_COLOR) difference() {
         round_mask();
         translate([-150, 0, -1]) cube(300);
     }
 } else {
-    round_mask();
+    color(TPU_COLOR) round_mask();
 }
