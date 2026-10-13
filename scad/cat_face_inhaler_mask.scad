@@ -244,8 +244,12 @@ module rim_template() {
     }
     translate([-rim_r(180) - 2, 0]) text("chin", size = 3, font = font, halign = "right", valign = "center");
     translate([rim_r(0) + 2, 0]) text("nose", size = 3, font = font, halign = "left", valign = "center");
+    sized_by_weight = rim_length == 0 && rim_width == 0 && face_scale_override == 0;
+    translate([0, rim_wid_out / 2 + 9])
+        text(sized_by_weight ? str("cat face mask, ", cat_weight_kg, " kg cat") : "cat face mask",
+             size = 3, font = font, halign = "center");
     translate([0, rim_wid_out / 2 + 4])
-        text(str("cat face mask rim ", round(10 * rim_len_out) / 10, " x ", round(10 * rim_wid_out) / 10, " mm"),
+        text(str("rim ", round(10 * rim_len_out) / 10, " x ", round(10 * rim_wid_out) / 10, " mm"),
              size = 3, font = font, halign = "center");
     translate([0, -rim_wid_out / 2 - 7]) {
         square([50, 0.5], center = true);
