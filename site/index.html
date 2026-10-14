@@ -200,7 +200,7 @@ proszę o wydruk 3D maski i komory inhalacyjnej dla kota z załączonej paczki Z
 
 Materiały:
 - pliki TPU_... z elastycznego TPU 95A: jedna maska (TPU_maska_profilowana albo TPU_maska_okragla), klapka i parasolka po 3 sztuki,
-- pliki PETG_... z PETG (może być PLA): korpus, pokrywka i wkładka zaworu po 1 sztuce. Pliku PETG_komora_jednoczesciowa_bez_zaworow nie trzeba drukować.
+- pliki PETG_... z PETG (może być PLA): korpus, pokrywka i wkładka zaworu po 1 sztuce. Pliku PETG_komora_jednoczesciowa_bez_zaworow nie trzeba drukować. PETG_test_gniazda_inhalatora to krótka próbka gniazda (5 g): warto ją wydrukować najpierw i sprawdzić, czy inhalator dobrze w nią wchodzi.
 
 Ustawienia: dysza 0,4 mm, warstwa 0,2 mm, bez podpór, każda część w ułożeniu z pliku. Maska 4–5 obrysów. Klapka i parasolka 100% wypełnienia, z suchego filamentu.
 
@@ -288,7 +288,7 @@ Dziękuję!</pre>
         <div>
           <h3>Sprawdź działanie</h3>
           <p>Bez maski i bez inhalatora weź do ust króciec i oddychaj przez komorę. Przy wdechu powietrze płynie swobodnie. Przy wydechu wychodzi przez parasolkę na górze. Opór ma być bardzo mały. Potem umyj komorę.</p>
-          <p>Na koniec wciśnij ustnik inhalatora w gniazdo na dole komory (wchodzi na ok. 1 cm i się klinuje), a maskę nasuń mocno na króciec na górze. Króciec jest odrobinę większy od ustnika inhalatora, żeby maska dobrze się na nim trzymała.</p>
+          <p>Na koniec wciśnij ustnik inhalatora w gniazdo na dole komory (fazka u wlotu go naprowadza, wchodzi na 5–10 mm i się klinuje), a maskę nasuń mocno na króciec na górze. Króciec jest odrobinę większy od ustnika inhalatora, żeby maska dobrze się na nim trzymała.</p>
         </div>
         <figure class="render"><img src="img/chamber_assembly.png" width="1400" height="1050" alt="Złożona komora"></figure>
       </li>
@@ -344,7 +344,7 @@ Dziękuję!</pre>
     </details>
     <details>
       <summary>Inhalator nie wchodzi w gniazdo albo z niego wypada</summary>
-      <p>Gniazdo jest lekko stożkowe: ustnik wchodzi na około centymetr i się klinuje. Wciśnij go mocniej, lekko obracając. Jeśli mimo to nie pasuje, gniazdo trzeba poszerzyć albo zwęzić w plikach źródłowych. To kilka minut pracy dla kogoś, kto zna darmowy program OpenSCAD (opis po angielsku jest w <a href="@@REPO@@/blob/main/MANUAL.md#8-troubleshooting">instrukcji technicznej</a>). Możesz też <a href="@@REPO@@/issues">opisać problem na GitHubie</a>.</p>
+      <p>Gniazdo w komorze ma kształt ustnika inhalatora Ventolin (proste krótkie boki, wypukłe długie boki) i lekko się zwęża: ustnik wchodzi na 5–10 mm i się klinuje. Wciśnij go mocniej, lekko obracając. Dopasowanie najprościej sprawdzić na krótkiej próbce gniazda (plik PETG_test_gniazda_inhalatora). Jeśli mimo to nie pasuje, gniazdo trzeba poszerzyć albo zwęzić w plikach źródłowych (parametr <code>inhaler_fit</code>). To kilka minut pracy dla kogoś, kto zna darmowy program OpenSCAD (opis po angielsku jest w <a href="@@REPO@@/blob/main/MANUAL.md#8-troubleshooting">instrukcji technicznej</a>). Możesz też <a href="@@REPO@@/issues">opisać problem na GitHubie</a>.</p>
     </details>
     <details>
       <summary>Pokrywka wypada z korpusu albo maska zsuwa się z króćca</summary>
@@ -352,7 +352,7 @@ Dziękuję!</pre>
     </details>
     <details id="inny-inhalator">
       <summary>Mój inhalator ma inny ustnik</summary>
-      <p>Zmierz linijką albo suwmiarką szerokość i wysokość końca ustnika. Pliki trzeba wtedy wygenerować na nowo z tymi wymiarami w programie OpenSCAD (parametry <code>mouth_w</code> i <code>mouth_h</code>, opis w <a href="@@REPO@@/blob/main/MANUAL.md#21-measure-your-inhaler-mouthpiece">instrukcji technicznej</a>). Jeśli to dla Ciebie za trudne, <a href="@@REPO@@/issues">załóż zgłoszenie na GitHubie</a> i podaj wymiary ustnika oraz nazwę inhalatora.</p>
+      <p>Zmierz linijką albo suwmiarką szerokość i wysokość końca ustnika. Pliki trzeba wtedy wygenerować na nowo z tymi wymiarami w programie OpenSCAD (parametry <code>mouth_w</code> i <code>mouth_h</code>, a w pliku komory także <code>inhaler_w</code>, <code>inhaler_h</code> i <code>inhaler_end_h</code>, opis w <a href="@@REPO@@/blob/main/MANUAL.md#21-measure-your-inhaler-mouthpiece">instrukcji technicznej</a>). Jeśli to dla Ciebie za trudne, <a href="@@REPO@@/issues">załóż zgłoszenie na GitHubie</a> i podaj wymiary ustnika oraz nazwę inhalatora.</p>
     </details>
     <details>
       <summary>Maska jest za mała albo za duża</summary>

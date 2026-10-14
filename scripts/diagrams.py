@@ -34,8 +34,8 @@ TEXT = {"pl": {
         "klapka (TPU {t} mm): unosi się przy wdechu,\nprzy wydechu przylega do kratki",
     "exhalation umbrella (TPU {t} mm) in the lid\npocket: exhaled air leaves the chamber here":
         "parasolka (TPU {t} mm) w kieszonce pokrywki:\ntędy wydychane powietrze wychodzi na zewnątrz",
-    "nozzle: same shape as the inhaler\nmouthpiece, plugs into the mask":
-        "króciec: ma kształt ustnika inhalatora,\nwkłada się go w maskę",
+    "nozzle: inhaler mouthpiece size,\nplugs into the mask socket":
+        "króciec: wielkości ustnika inhalatora,\nwkłada się go w gniazdo maski",
     "ceiling cone:\nroom for the flap to open": "stożek pod pokrywką:\nmiejsce na otwarcie klapki",
     "cap": "pokrywka",
     "body": "korpus",
@@ -197,7 +197,7 @@ def chamber_section(m, p, c, out, lang="en"):
          (p["hinge_r"] - 5, flap_z + ft / 2), flap_z + 2),
         (T(lang, "exhalation umbrella (TPU {t} mm) in the lid\npocket: exhaled air leaves the chamber here", t=f"{p['umbrella_t']:g}"),
          (p["r_ex"] + p["umbrella_d"] / 2 - 1, cap_z + p["seat_z"] + p["umbrella_t"] / 2), cap_z + p["seat_z"] + 4),
-        (T(lang, "nozzle: same shape as the inhaler\nmouthpiece, plugs into the mask"),
+        (T(lang, "nozzle: inhaler mouthpiece size,\nplugs into the mask socket"),
          (p["na"] - p["nt"] / 2 - 0.8, cap_z + p["z_lid"] + p["nozzle_len"] / 2), cap_z + p["z_lid"] + p["nozzle_len"] / 2 + 4),
     ]
     z_ceiling = cap_z + (p["z_c"] + p["z_n"]) / 2

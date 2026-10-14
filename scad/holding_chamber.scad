@@ -5,12 +5,14 @@
 //
 //     [inhaler] -> inhaler socket | chamber body | cap + nozzle -> [mask]
 //
-//  - The inhaler socket is the same tapered wedge socket as in the mask
-//    files, so the inhaler mouthpiece pushes straight in.
-//  - The nozzle on the cap imitates the inhaler mouthpiece (same shape,
-//    slightly tapered) so it plugs into the socket of either mask.
-//    Use the SAME mouth_w / mouth_h / mouth_corner_r / socket_taper values
-//    as in your mask file(s).
+//  - The inhaler socket follows the real Ventolin / albuterol HFA mouthpiece
+//    outline: straight short ends, long sides that bulge outwards, small
+//    corners.  The body is rigid, so the socket starts a little larger than
+//    the mouthpiece and narrows gently; the mouthpiece seats part way in.
+//  - The nozzle on the cap imitates the mouthpiece in the simpler rounded
+//    rectangle the TPU mask sockets are made for, so it plugs into either
+//    mask.  Use the SAME mouth_w / mouth_h / mouth_corner_r values as in
+//    your mask file(s).
 //  - Inhalation valve: a thin TPU flap on a grille insert.  The flap lifts
 //    when the cat breathes in and closes when it breathes out, so the dose
 //    waits in the chamber instead of being blown back out.
@@ -29,6 +31,8 @@
 //    flap      - inhalation flap in TPU, print disc down (0.6 mm = 3 layers)
 //                with the hinge tab standing up at 90 deg
 //    umbrella  - exhalation umbrella, print disc down, stem up, in TPU
+//    socket_test - just the inhaler socket end of the body, a quick print
+//                to try the inhaler fit before printing the whole body
 //  ASSEMBLY: push the flap's tab, barb first, down through the slot of the
 //    insert and pull it from below until the barb pops through and the
 //    disc lies flat on the insert (that face goes towards the nozzle).
@@ -50,20 +54,35 @@
 //    echoed in the console.
 // =====================================================================
 
-/* [Mouthpiece / connector shape  (copy from your mask file)] */
-// Mouthpiece long outer dimension (mm) -> along Y
-mouth_w = 25.4;
-// Mouthpiece short outer dimension (mm) -> along X
-mouth_h = 19.6;
+/* [Inhaler socket  (your inhaler's mouthpiece)] */
+// Defaults: GSK Ventolin HFA / Evohaler actuator, fitted to two sockets that were made for it
+// (city17's "Bottle Adapter for Cat Asthma Inhaler", Printables 848067, and bens' "Vase Mode
+// Ventolin Inhaler Spacer", NIH 3D 3DPX-018151) and to photos of the mouthpiece and its cap.
+// Mouthpiece long outer width (mm) -> along Y
+inhaler_w = 25.4;
+// Mouthpiece short outer height at the middle of the long sides, where they bulge most (mm) -> along X
+inhaler_h = 19.6;
+// Short outer height at the ends of the long sides, next to the corners (mm); = inhaler_h for flat sides
+inhaler_end_h = 12;
 // Corner radius of the mouthpiece outline
-mouth_corner_r = 7;
-// Total shrink of the inhaler socket over socket_taper_depth (wedge fit)
-socket_taper = 4;
+inhaler_corner_r = 2;
+// Socket mouth minus mouthpiece size, on the width and the height (mm): + = the mouthpiece goes in deeper
+inhaler_fit = 0.6;
+// Total shrink of the socket over socket_taper_depth: the mouthpiece wedges where the socket reaches its size
+socket_taper = 2;
 socket_taper_depth = 15;
-// Extra clearance in the inhaler socket (TPU 0, PETG/PLA 0.3)
-socket_clearance = 0;
 // Total depth of the inhaler socket
 socket_depth = 18;
+// 45 deg chamfer at the socket mouth that guides the mouthpiece in (also takes the elephant's foot of the first layers)
+socket_lead_in = 1;
+
+/* [Mask connector shape  (copy from your mask file)] */
+// Long outer dimension of the mask socket the nozzle plugs into (mm) -> along Y
+mouth_w = 25.4;
+// Short outer dimension (mm) -> along X
+mouth_h = 19.6;
+// Corner radius of the mask socket outline
+mouth_corner_r = 7;
 
 /* [Chamber] */
 // Outer diameter of the chamber tube
@@ -134,7 +153,7 @@ skirt_ribs = 6;
 skirt_rib_interference = 0.25;
 
 /* [Output] */
-part = "all"; // [all, body, cap, insert, flap, umbrella, assembly, exploded]
+part = "all"; // [all, body, cap, insert, flap, umbrella, socket_test, assembly, exploded]
 // Fuse body and cap into one print (no valve possible)
 one_piece = false;
 // Cut the model in half to inspect
@@ -146,9 +165,9 @@ $fn = 96;
 TPU_COLOR = "#e0a526";
 
 // ---------------------------------------------------------------- derived
-cl = socket_clearance / 2;
-ma = mouth_h / 2 + cl;                 // socket half size along X
-mb = mouth_w / 2 + cl;                 // socket half size along Y
+sd = inhaler_fit / 2;                  // socket mouth outline = mouthpiece outline offset outwards by this
+ma = inhaler_h / 2 + sd;               // socket mouth half size along X (middle of the long side)
+mb = inhaler_w / 2 + sd;               // socket mouth half size along Y
 sh = socket_taper / 2;                 // shrink per side at full taper depth
 R  = chamber_d / 2;
 Ri = R - wall;
@@ -156,8 +175,8 @@ z_sock = socket_depth;
 z_cone = z_sock + inlet_cone_len;
 z_top  = z_cone + chamber_len;         // body height
 
-na = ma + nozzle_oversize / 2;         // nozzle base half sizes (= mouthpiece)
-nb = mb + nozzle_oversize / 2;
+na = mouth_h / 2 + nozzle_oversize / 2;   // nozzle base half sizes (= mask socket)
+nb = mouth_w / 2 + nozzle_oversize / 2;
 nt = nozzle_taper / 2;                 // nozzle shrink per side at the tip
 nrc = mouth_corner_r;
 
@@ -201,6 +220,8 @@ lid_d = ex_on ? head_d : chamber_d;
 assert(!(one_piece && valve), "one_piece = true cannot hold a valve (no access to install it); set valve = false");
 assert(bore_d > flap_d + 2, str("Chamber too narrow for the valve: bore ", bore_d, " mm, flap ", flap_d, " mm. Increase chamber_d or reduce valve_d."));
 assert(Ri > max(ma, mb) - sh + 1, "chamber_d too small for the mouthpiece socket");
+assert(inhaler_end_h <= inhaler_h && inhaler_end_h > 2 * inhaler_corner_r, "inhaler_end_h must lie between 2 x inhaler_corner_r and inhaler_h");
+assert(sh < sd + inhaler_corner_r + inhaler_end_h / 2 - 1, "socket_taper too large for this mouthpiece");
 assert(nt < min(na, nb) - nozzle_wall - 2, "nozzle_taper too large for the nozzle size");
 assert(!ex_on || r_ex + pocket_d / 2 + 1.2 <= lid_d / 2, str("head_d too small for the exhalation valve: needs at least ", 2 * (r_ex + pocket_d / 2 + 1.2), " mm"));
 assert(!ex_on || seat_z - seat_t - bulb_pocket_h > z_c + 1, "exhalation pocket too deep for this head: reduce pocket_depth or increase head_cone_len");
@@ -218,15 +239,52 @@ function rrect_r(a, b, rc0, t) =
         : tm;
 function rr_list(a, b, rc) = [for (t = thetas) rrect_r(a, b, rc, t)];
 function circ_list(d)      = [for (t = thetas) d / 2];
-// closed solid between outline r0 at height z0 and outline r1 at height z1 (both convex, sampled at the same angles)
-module loft(r0, r1, z0, z1) {
-    n = len(thetas);
-    pts = concat([for (j = [0 : n - 1]) [r0[j] * cos(thetas[j]), r0[j] * sin(thetas[j]), z0]],
-                 [for (j = [0 : n - 1]) [r1[j] * cos(thetas[j]), r1[j] * sin(thetas[j]), z1]]);
+
+// Ventolin-type mouthpiece outline ("barrel"), counter-clockwise points: straight short ends at y = +-b,
+// long sides are circular arcs that bulge to x = +-a at the middle and come in to x = +-ae at the ends,
+// corners rounded with rc.  d offsets the whole outline outwards (+) or inwards (-): the corners grow or
+// shrink with it, and once they are sharp the rest of the outline keeps shrinking.  Every outline has the
+// same number of points at nearly the same angles, so two of them loft point to point.
+function barrel_pts(a, b, ae, rc, d = 0) =
+    let(bulge = max(a - ae, 0.01),
+        Ra = (b * b + bulge * bulge) / (2 * bulge),   // arc through (a, 0) and (ae, +-b)
+        cx = a - Ra,                                   // centre of the +X arc (the -X arc mirrors it)
+        r  = max(rc + d, 0.1),                         // corner radius of the offset outline
+        e  = r - rc - d,                               // extra shrink of the core once the corners are sharp
+        kb = b - rc - e, kr = Ra - rc - e,             // core = |y| <= kb inside both arcs of radius kr
+        kx = cx + sqrt(kr * kr - kb * kb),             // core corner
+        ph = atan2(kb, kx - cx),                       // half angle of each arc
+        na = 16, nc = 8, ns = 8, y = kb + r)
+    concat([for (i = [0 : na - 1]) let(t = -ph + 2 * ph * i / na)       [ cx + (kr + r) * cos(t), (kr + r) * sin(t)]],
+           [for (i = [0 : nc - 1]) let(t = ph + (90 - ph) * i / nc)       [ kx + r * cos(t),  kb + r * sin(t)]],
+           [for (i = [0 : ns - 1]) [kx - 2 * kx * i / ns, y]],
+           [for (i = [0 : nc - 1]) let(t = 90 + (90 - ph) * i / nc)       [-kx + r * cos(t),  kb + r * sin(t)]],
+           [for (i = [0 : na - 1]) let(t = 180 - ph + 2 * ph * i / na)  [-cx + (kr + r) * cos(t), (kr + r) * sin(t)]],
+           [for (i = [0 : nc - 1]) let(t = 180 + ph + (90 - ph) * i / nc) [-kx + r * cos(t), -kb + r * sin(t)]],
+           [for (i = [0 : ns - 1]) [-kx + 2 * kx * i / ns, -y]],
+           [for (i = [0 : nc - 1]) let(t = 270 + (90 - ph) * i / nc)      [ kx + r * cos(t), -kb + r * sin(t)]]);
+// circle of diameter dc sampled at the angles of the points of outline p, to loft p into
+function circle_like(p, dc) = [for (q = p) dc / 2 * q / norm(q)];
+function sum(v, i = 0) = i >= len(v) ? 0 : v[i] + sum(v, i + 1);
+function poly_area(p) = abs(sum([for (i = [0 : len(p) - 1]) let(q = p[(i + 1) % len(p)]) p[i][0] * q[1] - p[i][1] * q[0]])) / 2;
+// the inhaler mouthpiece outline offset by d
+function socket_pts(d) = barrel_pts(inhaler_h / 2, inhaler_w / 2, inhaler_end_h / 2, inhaler_corner_r, d);
+inhaler_outline = socket_pts(0);       // the mouthpiece itself (for the diagrams)
+
+// closed solid between outline p0 at height z0 and outline p1 at height z1 (2D point lists, same length,
+// point j of one matching point j of the other)
+module loft_xy(p0, p1, z0, z1) {
+    n = len(p0);
+    pts = concat([for (q = p0) [q[0], q[1], z0]], [for (q = p1) [q[0], q[1], z1]]);
     faces = concat([[for (j = [0 : n - 1]) j]],
                    [[for (j = [n - 1 : -1 : 0]) n + j]],
                    [for (j = [0 : n - 1]) [j, n + j, n + (j + 1) % n, (j + 1) % n]]);
     polyhedron(points = pts, faces = faces, convexity = 4);
+}
+// closed solid between outline r0 at height z0 and outline r1 at height z1 (both convex, sampled at the same angles)
+module loft(r0, r1, z0, z1) {
+    loft_xy([for (j = [0 : len(thetas) - 1]) r0[j] * [cos(thetas[j]), sin(thetas[j])]],
+            [for (j = [0 : len(thetas) - 1]) r1[j] * [cos(thetas[j]), sin(thetas[j])]], z0, z1);
 }
 module rrect_taper(a0, b0, a1, b1, rc, z0, z1)   { loft(rr_list(a0, b0, rc), rr_list(a1, b1, rc), z0, z1); }
 module loft_rrect_circle(a, b, rc, d, z0, z1)    { loft(rr_list(a, b, rc), circ_list(d), z0, z1); }
@@ -242,16 +300,38 @@ module rrect2d(a, b, rc0) {
 module body() {
     difference() {
         union() {
-            rrect_taper(ma + wall, mb + wall, ma + wall, mb + wall, mouth_corner_r + wall, 0, z_sock + 0.01);
-            loft_rrect_circle(ma + wall, mb + wall, mouth_corner_r + wall, chamber_d, z_sock, z_cone + 0.01);
+            socket_end_outside();
             translate([0, 0, z_cone]) cylinder(d = chamber_d, h = chamber_len);
         }
-        // inhaler socket: wedge taper, then straight to the cone
-        rrect_taper(ma, mb, ma, mb, mouth_corner_r, -1, 0.02);
-        rrect_taper(ma, mb, ma - sh, mb - sh, mouth_corner_r, 0, socket_taper_depth);
-        rrect_taper(ma - sh, mb - sh, ma - sh, mb - sh, mouth_corner_r, socket_taper_depth - 0.02, z_sock + 0.02);
-        loft_rrect_circle(ma - sh, mb - sh, mouth_corner_r, 2 * Ri, z_sock, z_cone + 0.02);
+        socket_end_inside();
         translate([0, 0, z_cone - 0.01]) cylinder(d = 2 * Ri, h = chamber_len + 1);
+    }
+}
+module socket_end_outside() {
+    p_out = socket_pts(sd + wall);
+    loft_xy(p_out, p_out, 0, z_sock + 0.01);
+    loft_xy(p_out, circle_like(p_out, chamber_d), z_sock, z_cone + 0.01);
+}
+// inhaler socket: lead-in chamfer, gentle wedge taper, straight to the inlet cone, inlet cone
+module socket_end_inside() {
+    lead = min(socket_lead_in, socket_taper_depth / 2);
+    p_mouth = socket_pts(sd);
+    p_bot = socket_pts(sd - sh);
+    p_lead = socket_pts(sd - sh * lead / socket_taper_depth);        // the taper outline at the bottom of the chamfer
+    loft_xy(socket_pts(sd + lead), socket_pts(sd + lead), -1, 0.01);
+    loft_xy(socket_pts(sd + lead), p_lead, 0, lead);
+    loft_xy(p_mouth, p_bot, 0, socket_taper_depth);
+    loft_xy(p_bot, p_bot, socket_taper_depth - 0.01, z_sock + 0.02);
+    loft_xy(p_bot, circle_like(p_bot, 2 * Ri), z_sock, z_cone + 0.02);
+}
+// the socket end of the body alone, cut 3 mm into the inlet cone: print it to try the inhaler fit
+module socket_test() {
+    difference() {
+        intersection() {
+            socket_end_outside();
+            translate([0, 0, -1]) cylinder(r = chamber_d, h = z_sock + 4);
+        }
+        socket_end_inside();
     }
 }
 
@@ -399,6 +479,7 @@ module selected() {
     else if (part == "insert")   valve_insert();
     else if (part == "flap")     color(TPU_COLOR) valve_flap();
     else if (part == "umbrella") color(TPU_COLOR) umbrella();
+    else if (part == "socket_test") socket_test();
     else if (part == "assembly") { if (one_piece) one_piece_chamber(); else assembly(); }
     else if (part == "exploded") { if (one_piece) one_piece_chamber(); else exploded(); }
     else layout();
@@ -407,15 +488,18 @@ module selected() {
 // ---------------------------------------------------------------- info
 function A_rr(a, b, rc) = 4 * a * b - (4 - PI) * rc * rc;          // area of a rounded rectangle
 function frustum(A1, A2, h) = h / 3 * (A1 + A2 + sqrt(A1 * A2));
-A_in1 = A_rr(ma - sh, mb - sh, max(mouth_corner_r - sh, 0));
+A_in1 = poly_area(socket_pts(sd - sh));
 A_tube = PI * Ri * Ri;
 A_bore = PI * pow(bore_d / 2, 2);
 A_noz  = A_rr(na - nozzle_wall, nb - nozzle_wall, nrc - nozzle_wall);
 v_main = A_tube * chamber_len + frustum(A_in1, A_tube, inlet_cone_len) + A_bore * z_c + frustum(A_bore, A_noz, head_cone_len);
-v_sock = socket_depth * (A_rr(ma, mb, mouth_corner_r) + A_in1) / 2;
+v_sock = socket_depth * (poly_area(socket_pts(sd)) + A_in1) / 2;
 echo(str("chamber internal volume ~ ", round(v_main / 100) / 10, " ml (tube + cones + cap), plus ~", round(v_sock / 100) / 10, " ml inside the inhaler socket"));
 echo(str("body height ", z_top, " mm, cap height ", cap_h, " mm, assembled length ", z_top - skirt_h + cap_h, " mm, outer diameter ", chamber_d, " mm"));
-echo(str("nozzle: base ", 2 * na, " x ", 2 * nb, " mm -> tip ", 2 * (na - nt), " x ", 2 * (nb - nt), " mm over ", nozzle_len, " mm; inhaler socket ", 2 * ma, " x ", 2 * mb, " -> ", 2 * (ma - sh), " x ", 2 * (mb - sh), " mm"));
+echo(str("nozzle: base ", 2 * na, " x ", 2 * nb, " mm -> tip ", 2 * (na - nt), " x ", 2 * (nb - nt), " mm over ", nozzle_len, " mm"));
+echo(str("inhaler socket for a ", inhaler_w, " x ", inhaler_h, " mm mouthpiece (", inhaler_end_h, " mm at the ends): mouth ", 2 * mb, " x ", 2 * ma,
+         " mm narrowing to ", 2 * (mb - sh), " x ", 2 * (ma - sh), " mm at ", socket_taper_depth, " mm deep; a mouthpiece of exactly that size seats ",
+         round(10 * socket_taper_depth * min(sd / sh, 1)) / 10, " mm deep, ", round(10 * socket_taper_depth / socket_taper) / 100, " mm less per 0.1 mm larger"));
 if (valve) echo(str("valve: opening ", valve_d, " mm, flap ", flap_d, " x ", flap_t, " mm with a ", tab_w, " x ", tab_t, " x ", tab_len, " mm standing tab, insert ", bore_d - insert_clearance, " mm dia in a ", bore_d, " mm bore; ceiling clearance above the flap edge ~", round(10 * (bore_d / 2 - hinge_r) / (bore_d / 2 - min(na, nb) + nozzle_wall) * head_cone_len) / 10, " mm"));
 if (ex_on) echo(str("exhalation valve: umbrella ", umbrella_d, " x ", umbrella_t, " mm, ", exhale_holes, " holes of ", exhale_hole_d, " mm (", round(exhale_holes * PI * pow(exhale_hole_d / 2, 2) * 10) / 10, " mm2), lid ", lid_d, " mm"));
 

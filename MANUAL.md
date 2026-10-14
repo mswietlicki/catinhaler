@@ -26,6 +26,7 @@ The masks are exported for cats of **3.3, 4, 5 and 6 kg** (see [Pick the mask si
 | Inhalation flap | `stl/common/holding_chamber_valve_flap.stl` | TPU | 0.6 mm flap with a hinge tab printed standing up. Opens when the cat breathes in. |
 | Exhalation umbrella | `stl/common/holding_chamber_umbrella.stl` | TPU | 0.4 mm umbrella valve. Lets exhaled air out of the cap. |
 | One-piece spacer | `stl/common/holding_chamber_one_piece_spacer.stl` | PETG or PLA | Alternative: body and cap fused, no valves. Simplest print. |
+| Socket test | `stl/common/holding_chamber_socket_test.stl` | PETG or PLA | Optional: only the inhaler socket end of the body (5 g). Print it first to try your inhaler, see [2.1](#21-measure-your-inhaler-mouthpiece). |
 
 `<size>` is one of `3.3kg`, `4kg`, `5kg`, `6kg`. Source files (in `scad/`): `cat_face_inhaler_mask.scad`, `round_cushion_inhaler_mask.scad`, `holding_chamber.scad`.
 
@@ -55,7 +56,7 @@ flowchart LR
     I -. without the chamber .-> M
 ```
 
-Both masks have the same socket as the chamber body, so an inhaler can also be pushed **directly into a mask** without the chamber. The chamber nozzle has the same shape as an inhaler mouthpiece, so it fits the same socket.
+An inhaler can also be pushed **directly into a mask** without the chamber: the soft TPU mask socket stretches around the mouthpiece. The chamber nozzle is a rounded rectangle of the mouthpiece's size, so it plugs into the same mask socket. The chamber body is rigid and cannot stretch, so its socket follows the real outline of the mouthpiece instead (see 2.1).
 
 ![Assembled system](docs/img/system_assembled.png)
 
@@ -65,13 +66,18 @@ Both masks have the same socket as the chamber body, so an inhaler can also be p
 
 ### 2.1 Measure your inhaler mouthpiece
 
-The two reference designs this kit was derived from disagree about the Ventolin mouthpiece (25.4 x 19.6 mm versus 24 x 17.5 mm), so measure yours with calipers:
+The defaults are for the GSK Ventolin HFA / Evohaler actuator, which the albuterol (salbutamol) HFA authorised generics use too: **25.4 x 19.6 mm**. Seen end on, its mouthpiece is not a plain rounded rectangle but a "barrel": the two short ends are straight, the two long sides bulge outwards (about 12 mm high next to the corners, 19.6 mm in the middle), and the corners are small, about 2 mm.
 
-1. Measure the **long outer width** of the mouthpiece tip. This is `mouth_w`.
-2. Measure the **short outer height**. This is `mouth_h`.
-3. Estimate the **corner radius**. A fully rounded oval is half the height; a boxier shape is smaller. This is `mouth_corner_r`.
+No datasheet publishes these numbers. They are fitted to two published sockets that were made for a Ventolin and both have this outline: city17's [Bottle Adapter for Cat Asthma Inhaler](https://www.printables.com/model/848067) (a rigid socket of 25.4 x 19.6 mm at the mouth, by the author of the "ventolin cat face v4" mask) and bens' [Vase Mode Ventolin Inhaler Spacer](https://3d.nih.gov/entries/3DPX-018151) (25.4 mm wide, a thin wall that flexes over the bulge). Photos of a mouthpiece and its dust cap agree. (The "inhalateur2" design used a 24 x 17.5 mm stadium hole without taper, a deliberately tight TPU fit.) If you can, check your own inhaler with calipers:
 
-Put the same three values in all three `.scad` files (the *Inhaler socket* group in the mask files, the first group in the chamber file), then re-export. The sockets taper by 4 mm over 15 mm, so the mouthpiece wedges in and seals even if your numbers are a millimetre off.
+1. **Long outer width** of the mouthpiece tip: `inhaler_w` in the chamber file, `mouth_w` in the mask files.
+2. **Short outer height in the middle** of the long sides, where they bulge most: `inhaler_h` (chamber), `mouth_h` (masks).
+3. **Short outer height at the ends**, just inside the corners: `inhaler_end_h` (chamber). Make it equal to `inhaler_h` for a mouthpiece with flat sides.
+4. **Corner radius**: `inhaler_corner_r` (chamber). Err on the small side. The masks use one rounded rectangle, `mouth_corner_r`, and the TPU stretches to the real shape.
+
+The two mask files and the chamber file must agree on `mouth_w`, `mouth_h` and `mouth_corner_r`, because the chamber nozzle plugs into the mask socket. Re-export after a change.
+
+The mask sockets (TPU) taper by 4 mm over 15 mm and stretch around the mouthpiece. The chamber socket (rigid PETG) starts `inhaler_fit` = 0.6 mm larger than the mouthpiece behind a 1 mm lead-in chamfer and narrows by 2 mm over 15 mm. A mouthpiece of exactly the default size wedges about 4.5 mm deep, and the tip of a real mouthpiece is usually a little smaller, so it goes deeper. Every 0.1 mm that yours is smaller moves that 0.75 mm deeper, so a mouthpiece down to 24 x 18.2 mm still wedges. To check before printing the whole body, print `holding_chamber_socket_test.stl`, which is the socket end alone, and push your inhaler in: it should go in 3 to 12 mm and stop firmly. If it stops sooner, raise `inhaler_fit` by 0.4; if it goes in further or wobbles, lower it by 0.4.
 
 ### 2.2 Pick the mask size
 
@@ -150,7 +156,7 @@ PETG is the first choice (tough, dishwasher-safe at low temperature, less static
 | Temperature (PETG) | 235 to 250 C nozzle, 75 to 85 C bed |
 | Fan | 30 to 50 % |
 | Adhesion | brim 5 mm on the 110 mm tall body; the socket end is small |
-| Supports | none. Overhangs are 45 degrees or less by design (inlet cone 34, ceiling cone 37, lid flare 45, exhalation holes 45). The blind bulb pocket and the stem hole are bridged over 2 to 4 mm. |
+| Supports | none. Overhangs are 45 degrees or less by design (inlet cone 33, ceiling cone 37, lid flare 45, exhalation holes 45). The blind bulb pocket and the stem hole are bridged over 2 to 4 mm. |
 
 ![Chamber parts](docs/img/chamber_all_parts.png)
 
@@ -229,7 +235,7 @@ Assembled chamber: 141 mm long, 49 mm at the lid. With a mask on the nozzle add 
 
 ### 5.5 Inhaler and mask
 
-1. Push the **inhaler mouthpiece** into the socket at the bottom of the body. It wedges after about 10 mm.
+1. Push the **inhaler mouthpiece** into the socket at the bottom of the body. The chamfer at the mouth guides it in, and it wedges after 5 to 10 mm.
 2. Push the **mask** firmly onto the **nozzle** on top of the cap. The nozzle is 0.4 mm larger than the inhaler mouthpiece (`nozzle_oversize`), so it stretches the TPU socket and grips; the mask may stop a millimetre or so short of the lid.
 3. Without a chamber: push the inhaler straight into the mask socket instead.
 
@@ -271,8 +277,10 @@ Do not boil, dishwash on hot, or leave in a sunny car: TPU and PLA deform.
 
 | Problem | Fix |
 |---|---|
-| Inhaler will not go into the socket | TPU shrinks a little. Set `socket_clearance = 0.3` in the mask / chamber file and reprint, or enlarge `mouth_w` / `mouth_h` after measuring. |
-| Inhaler falls out | Set `socket_clearance = -0.2` or raise `socket_taper` to 5. |
+| Inhaler will not go into the chamber socket | Raise `inhaler_fit` in `holding_chamber.scad` by 0.4 (it then goes in 3 mm deeper) and print the socket test first. If the corners catch, measure the mouthpiece outline ([2.1](#21-measure-your-inhaler-mouthpiece)). |
+| Inhaler loose in the chamber socket | Lower `inhaler_fit` by 0.4. |
+| Inhaler will not go into a mask | TPU shrinks a little. Set `socket_clearance = 0.3` in the mask file and reprint, or enlarge `mouth_w` / `mouth_h` after measuring. |
+| Inhaler falls out of a mask | Set `socket_clearance = -0.2` or raise `socket_taper` to 5 in the mask file. |
 | Chamber nozzle loose in the mask | Raise `nozzle_oversize` (default 0.4) to 0.6 or 0.8 in `holding_chamber.scad` and reprint the cap. If the mask is too hard to push on, lower it. |
 | Cap falls out of the body | Raise `skirt_rib_interference` (default 0.25) by 0.1 and reprint the cap. If the cap is too hard to push in, lower it by 0.1. |
 | Mask too big / too small | Try the next size folder. Between sizes, change `cat_weight_kg`, or set `rim_length` / `rim_width` (cat face) or `rim_d` (round) in mm. Print the paper template first. |
@@ -292,8 +300,10 @@ Parameters you will most likely touch:
 
 | File | Parameter | Meaning |
 |---|---|---|
-| all three | `mouth_w`, `mouth_h`, `mouth_corner_r` | your inhaler mouthpiece (use the same values everywhere) |
-| all three | `socket_taper`, `socket_clearance` | grip of the sockets |
+| all three | `mouth_w`, `mouth_h`, `mouth_corner_r` | your inhaler mouthpiece as a rounded rectangle: the mask sockets and the chamber nozzle (use the same values everywhere) |
+| masks | `socket_taper`, `socket_clearance` | grip of the mask sockets |
+| chamber | `inhaler_w`, `inhaler_h`, `inhaler_end_h`, `inhaler_corner_r` | the real mouthpiece outline, for the rigid chamber socket |
+| chamber | `inhaler_fit`, `socket_taper` | how deep the inhaler goes into the chamber socket before it wedges (echoed in the console) |
 | masks | `cat_weight_kg` or `rim_length` / `rim_width` / `rim_d` | mask size |
 | masks | `cup_wall`, `lip_d` / `lip_r` | wall and rim softness |
 | cat face mask | `part = "template"` | 2D rim template for paper |
