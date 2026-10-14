@@ -42,6 +42,8 @@ CHAMBER = {
     "holding_chamber_umbrella": ("TPU_zawor_parasolka", "Parasolka (zawór wydechowy)", "TPU", "2–3 szt."),
     "holding_chamber_one_piece_spacer": ("PETG_komora_jednoczesciowa_bez_zaworow", "Komora jednoczęściowa bez zaworów", "PETG",
                                          "tylko zamiast korpusu, pokrywki i zaworów"),
+    "holding_chamber_socket_test": ("PETG_test_gniazda_inhalatora", "Próbka gniazda na inhalator (test dopasowania)", "PETG",
+                                    "opcjonalnie, przed korpusem"),
 }
 MATERIAL_CLASS = {"TPU": "tpu", "PETG": "petg", "papier": "paper"}
 

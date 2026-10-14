@@ -55,6 +55,7 @@ COMMON = [
     ("holding_chamber_valve_insert", {"part": "insert"}),
     ("holding_chamber_valve_flap", {"part": "flap"}),
     ("holding_chamber_umbrella", {"part": "umbrella"}),
+    ("holding_chamber_socket_test", {"part": "socket_test"}),
 ]
 
 # output name, source file, camera rotation about X and Z in degrees, parameter overrides
@@ -85,7 +86,8 @@ PNG_OPTS = ["--viewall", "--autocenter", "--projection=p", "--colorscheme=Tomorr
 
 # holding_chamber.scad variables the diagrams are dimensioned from
 CHAMBER_VARS = [
-    "mouth_w", "mouth_h", "mouth_corner_r", "socket_taper", "socket_taper_depth", "socket_depth", "chamber_d", "chamber_len",
+    "mouth_w", "mouth_h", "mouth_corner_r", "inhaler_w", "inhaler_h", "socket_taper", "socket_taper_depth", "socket_depth",
+    "chamber_d", "chamber_len", "inhaler_outline",
     "wall", "nozzle_len", "valve_d", "grille_w", "insert_t", "flap_t", "flap_overlap", "tab_w", "tab_t", "barb", "barb_z", "tab_len",
     "insert_clearance", "umbrella_d", "umbrella_t", "exhale_holes", "exhale_hole_d", "pocket_depth",
     "ma", "mb", "Ri", "z_sock", "z_cone", "z_top", "na", "nb", "nt", "skirt_h", "skirt_od", "bore_d",
@@ -326,7 +328,7 @@ def system_scene(p):
     """Inhaler (schematic) -> chamber -> cat face mask, assembled."""
     cap_z = p["z_top"] - p["skirt_h"]
     mask_z = cap_z + p["z_lid"]          # the mask socket mates with the nozzle over its whole length
-    h, w, r = p["mouth_h"], p["mouth_w"], p["mouth_corner_r"]
+    outline = json.dumps([[round(x, 3), round(y, 3)] for x, y in p["inhaler_outline"]])
     # schematic pMDI, modelled upright (boot along +Z, mouthpiece along +X) and turned so the mouthpiece
     # points up into the chamber socket, its tip 3 mm inside
     return f"""
@@ -336,8 +338,7 @@ def system_scene(p):
 translate([12, 0, 3 - 36]) rotate([0, -90, 0]) {{
     color("{INHALER_COLOR}") {{
         hull() for (x = [-4, 4]) translate([x, 0, 0]) cylinder(d = 26, h = 62, $fn = 48);
-        translate([0, 0, 12]) rotate([0, 90, 0]) linear_extrude(36)
-            offset(r = {r}) square([{h - 2 * r}, {w - 2 * r}], center = true);
+        translate([0, 0, 12]) rotate([0, 90, 0]) linear_extrude(36) polygon({outline});
     }}
     color("#d8d8dc") translate([0, 0, 40]) cylinder(d = 22, h = 52, $fn = 64);
 }}
